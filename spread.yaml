@@ -9,81 +9,81 @@ backends:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - ubuntu-cloud-22.04:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - ubuntu-cloud-24.04:
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - ubuntu-cloud-25.04:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - ubuntu-cloud-25.10:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - debian-cloud-11:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - debian-cloud-12:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - debian-cloud-sid:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - centos-cloud-9:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - centos-cloud-10:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - fedora-cloud-41:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - fedora-cloud-42:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - opensuse-cloud-tumbleweed:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - archlinux-cloud:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - amazonlinux-cloud-2:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
             - amazonlinux-cloud-2023:
                 manual: true
                 password: root
                 username: root
-                workers: 2
+                workers: 4
         type: adhoc
 debug: |
     cat *.debug || true

@@ -17,8 +17,6 @@ execute: |
     ( cd test-snapd-smoke && snap run snapcraft -v )
     snap install --dangerous ./test-snapd-smoke/test-snapd-smoke_1.0.0_*.snap
     snap run test-snapd-smoke | MATCH "I'm a snap!"
-# This task fails because LXD container created by snapcraft cannot access network.
-manual: true
 debug: |
     snap run lxd.lxc project list || true
     snap run lxd.lxc list --project=snapcraft || true

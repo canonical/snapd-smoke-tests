@@ -7,6 +7,11 @@ environment:
     LXD_TRACK/latest: latest
 kill-timeout: 5m
 warn-timeout: 3m
+systems:
+    # Those cannot mount squashfs in the LXD container, presumably due to missing FUSE support.
+    - -amazonlinux-cloud-2
+    - -debian-cloud-11
+    - -ubuntu-cloud-20.04
 execute: |
     snap run snapcraft --help 2>&1 | MATCH 'Package, distribute, and update snaps for Linux and IoT'
     ( cd test-snapd-smoke && snap run snapcraft -v )

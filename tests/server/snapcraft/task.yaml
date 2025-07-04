@@ -28,29 +28,16 @@ prepare: |
     snap run lxd waitready
     # Initialize LXD storage and networking with default settings.
     snap run lxd init --auto
-    # Configure firewall to allow network traffic.
-    # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/
-    snap run lxd.lxc network set lxdbr0 ipv4.firewall false
-    snap run lxd.lxc network set lxdbr0 ipv4.nat false
-    snap run lxd.lxc network set lxdbr0 ipv6.address ""
-    snap run lxd.lxc network set lxdbr0 ipv6.firewall false
-    snap run lxd.lxc network set lxdbr0 ipv6.nat false
-    if command -v firewall-cmd; then
-        firewall-cmd --add-interface=lxdbr0 --zone=trusted --permanent
-        firewall-cmd --reload
-    fi
-    if command -v ufw; then
-        ufw allow in on lxdbr0
-        ufw route allow in on lxdbr0
-        ufw route allow out on lxdbr0
-    fi
-    if command -v iptables; then
-        iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
-        iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
-    fi
-    if command -v ip6tables; then
-        ip6tables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
-        ip6tables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
+    # Allow LXD to connect to the network on systems where Docker is also installed.
+    if [ -n "$(command -v docker)" ]; then
+        if command -v iptables; then
+            iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
+            iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
+        fi
+        if command -v ip6tables; then
+            ip6tables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
+            ip6tables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
+        fi
     fi
     # Install snapcraft for building a snap.
     snap-install --classic snapcraft latest/"${X_SPREAD_SNAPCRAFT_RISK_LEVEL}"

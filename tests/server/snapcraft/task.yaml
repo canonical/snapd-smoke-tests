@@ -18,14 +18,6 @@ execute: |
     snap install --dangerous ./test-snapd-smoke/test-snapd-smoke_1.0.0_*.snap
     snap run test-snapd-smoke | MATCH "I'm a snap!"
 debug: |
-    snap run lxd.lxc project list || true
-    snap run lxd.lxc list --project=snapcraft || true
-    snap run lxd.lxc network show lxdbr0
-    ip addr list
-    ip link list
-    if command -v iptables; then
-        iptables -t nat -L POSTROUTING
-    fi
     cat ~/.local/state/snapcraft/log/snapcraft-*.log || true
 prepare: |
     snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"

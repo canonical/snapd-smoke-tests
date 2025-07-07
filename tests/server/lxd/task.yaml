@@ -9,10 +9,6 @@ execute: |
     snap run lxd --help | MATCH 'The LXD container manager'
     snap run lxd.lxc launch ubuntu:24.04 u1
     snap run lxd.lxc exec u1 -- cat /etc/os-release | MATCH 'VERSION_ID="24.04"'
-debug: |
-    ip addr list
-    ip link list
-    snap run lxd.lxc network show lxdbr0
 prepare: |
     snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
     # LXD is not immediately ready to accept API requets.

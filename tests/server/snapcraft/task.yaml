@@ -41,5 +41,6 @@ prepare: |
 restore: |
     snap remove --purge test-snapd-smoke || true
     snap remove --purge snapcraft
+    rm -rfv $HOME/snap/lxd
     snap remove --purge lxd
 summary: Install and see Snapcraft help output.

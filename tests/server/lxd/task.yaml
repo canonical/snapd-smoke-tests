@@ -29,5 +29,6 @@ prepare: |
 restore: |
     snap run lxd.lxc stop u1 || true
     snap run lxd.lxc delete u1 || true
+    rm -rfv $HOME/snap/lxd
     snap remove --purge lxd
 summary: Install and see LXD help output.

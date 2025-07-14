@@ -50,3 +50,12 @@ set.
 
 Note that the advisory is only compatible with a given release of Fedora or
 EPEL, so you must be careful in selecting the system to pair it with.
+
+## Testing snapd AUR updates
+
+AUR does not have support for pull-requests, so it is advisable to host a
+separate repository mirroring the AUR one on GitHub or Gitlab. Open a PR and set
+`X_SPREAD_ARCH_SNAPD_PR` with an URL to the PR. If the repository is managed
+with [aurpublish](https://github.com/eli-schwartz/aurpublish), you can set
+`X_SPREAD_ARCH_REPO_SUBDIR` to point to the directory where snapd packaging
+files are located.

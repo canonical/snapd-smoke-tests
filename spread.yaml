@@ -100,6 +100,8 @@ environment:
     X_SPREAD_DOCKER_RISK_LEVEL: '$(HOST: echo "${X_SPREAD_DOCKER_RISK_LEVEL:-stable}")'
     X_SPREAD_SALSA_JOB_ID: '$(HOST: echo "${X_SPREAD_SALSA_JOB_ID:-}")'
     X_SPREAD_BODHI_ADVISORY_ID: '$(HOST: echo "${X_SPREAD_BODHI_ADVISORY_ID:-}")'
+    X_SPREAD_ARCH_SNAPD_PR: '$(HOST: echo "${X_SPREAD_ARCH_SNAPD_PR:-}")'
+    X_SPREAD_ARCH_SNAPD_REPO_SUBDIR: '$(HOST: echo "${X_SPREAD_ARCH_SNAPD_REPO_SUBDIR:-}")'
 exclude:
     - .image-garden
     - .git

@@ -50,6 +50,24 @@ fedora-* | centos-*)
 		snap version | tee snap-version.bodhi.debug
 	fi
 	;;
+archlinux-*)
+	if [ -n "$X_SPREAD_ARCH_SNAPD_PR" ]; then
+		rm -rf /var/tmp/snapd
+		upstream_repo="$(echo "$X_SPREAD_ARCH_SNAPD_PR" | sed -e 's#/pull/[0-9]\+##')"
+		pr_num="$(basename "$X_SPREAD_ARCH_SNAPD_PR")"
+		sudo -u archlinux git clone "$upstream_repo" /var/tmp/snapd
+		sudo -u archlinux sh -c "cd /var/tmp/snapd && git fetch origin pull/$pr_num/head:pr && git checkout pr"
+		(
+			cd /var/tmp/snapd
+			if [ -n "$X_SPREAD_ARCH_SNAPD_REPO_SUBDIR" ]; then
+				cd "$X_SPREAD_ARCH_SNAPD_REPO_SUBDIR" || exit 1
+			fi
+			sudo -u archlinux sh -c 'makepkg -si --noconfirm'
+		)
+		systemctl enable --now snapd.socket
+		systemctl enable --now snapd.apparmor.service
+	fi
+	;;
 esac
 
 # Show the list of pre-installed snaps.

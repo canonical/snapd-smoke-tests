@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 name: bodhi
+run-name: Test ${{ inputs.bodhi-advisory-id }} on ${{ inputs.garden-system }}
 on:
     workflow_dispatch:
         inputs:

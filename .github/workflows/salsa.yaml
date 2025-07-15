@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 name: salsa
+run-name: Test Salsa job ${{ inputs.salsa-job-id }}
 on:
     workflow_dispatch:
         inputs:

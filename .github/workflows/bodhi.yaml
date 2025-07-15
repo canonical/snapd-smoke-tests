@@ -20,28 +20,54 @@ on:
                     - centos-cloud-10
             snapd-risk-level:
                 description: "Store risk level of the snapd snap"
-                type: string
-                default: "beta"
+                type: choice
+                default: beta
                 required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
             lxd-risk-level:
                 description: "Store risk level of the LXD snap"
-                type: string
-                default: "candidate"
+                type: choice
+                default: candidate
                 required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
             maas-risk-level:
                 description: "Store risk level of the MAAS snap"
-                type: string
-                default: "candidate"
+                type: choice
+                default: candidate
                 required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
             snapcraft-risk-level:
                 description: "Store risk level of the snapcraft snap"
-                type: string
-                default: "stable"
+                type: choice
+                default: stable
                 required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
             docker-risk-level:
                 description: "Store risk level of the docker snap"
-                type: string
+                type: choice
                 default: stable
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
             image-garden-channel:
                 description: "Store channel of the image-garden snap"
                 type: string

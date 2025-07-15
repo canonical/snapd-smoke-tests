@@ -1,50 +1,34 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 environment:
-    LXD_TRACK/5: "5.0"
-    LXD_TRACK/5_21: "5.21"
-    LXD_TRACK/6: 6
-    LXD_TRACK/latest: latest
+    LXD_TRACK/lxd_5: "5.0"
+    LXD_TRACK/lxd_5_21: "5.21"
+    LXD_TRACK/lxd_6: 6
+    LXD_TRACK/lxd_latest: latest
 execute: |
     snap run lxd --help | MATCH 'The LXD container manager'
     snap run lxd.lxc launch ubuntu:24.04 u1
     snap run lxd.lxc exec u1 -- cat /etc/os-release | MATCH 'VERSION_ID="24.04"'
-debug: |
-    ip addr list
-    ip link list
-    snap run lxd.lxc network show lxdbr0
 prepare: |
     snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
     # LXD is not immediately ready to accept API requets.
     snap run lxd waitready
     # Initialize LXD storage and networking with default settings.
     snap run lxd init --auto
-    # Configure firewall to allow network traffic.
-    # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/
-    snap run lxd.lxc network set lxdbr0 ipv4.firewall false
-    snap run lxd.lxc network set lxdbr0 ipv4.nat false
-    snap run lxd.lxc network set lxdbr0 ipv6.address ""
-    snap run lxd.lxc network set lxdbr0 ipv6.firewall false
-    snap run lxd.lxc network set lxdbr0 ipv6.nat false
-    if command -v firewall-cmd; then
-        firewall-cmd --add-interface=lxdbr0 --zone=trusted --permanent
-        firewall-cmd --reload
-    fi
-    if command -v ufw; then
-        ufw allow in on lxdbr0
-        ufw route allow in on lxdbr0
-        ufw route allow out on lxdbr0
-    fi
-    if command -v iptables; then
-        iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
-        iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
-    fi
-    if command -v ip6tables; then
-        ip6tables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
-        ip6tables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
+    # Allow LXD to connect to the network on systems where Docker is also installed.
+    if [ -n "$(command -v docker)" ]; then
+        if command -v iptables; then
+            iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
+            iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
+        fi
+        if command -v ip6tables; then
+            ip6tables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
+            ip6tables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
+        fi
     fi
 restore: |
     snap run lxd.lxc stop u1 || true
     snap run lxd.lxc delete u1 || true
+    rm -rfv $HOME/snap/lxd
     snap remove --purge lxd
 summary: Install and see LXD help output.

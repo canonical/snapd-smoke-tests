@@ -1,26 +1,25 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 environment:
-    LXD_TRACK/5: "5.0"
-    LXD_TRACK/5_21: "5.21"
-    LXD_TRACK/6: 6
-    LXD_TRACK/latest: latest
+    LXD_TRACK/lxd_5: "5.0"
+    LXD_TRACK/lxd_5_21: "5.21"
+    LXD_TRACK/lxd_6: 6
+    LXD_TRACK/lxd_latest: latest
+kill-timeout: 5m
+warn-timeout: 3m
+systems:
+    # Those cannot mount squashfs in the LXD container, presumably due to missing FUSE support.
+    - -amazonlinux-cloud-2
+    - -debian-cloud-11
+    - -ubuntu-cloud-20.04
 execute: |
     snap run snapcraft --help 2>&1 | MATCH 'Package, distribute, and update snaps for Linux and IoT'
-    cd test-snapd-smoke && snapcraft -v
+    # This may fail due to https://github.com/canonical/lxd/issues/12084
+    # so give it a 2nd chance in case of failure.
+    ( cd test-snapd-smoke && snap run snapcraft -v || snap run snapcraft -v )
     snap install --dangerous ./test-snapd-smoke/test-snapd-smoke_1.0.0_*.snap
     snap run test-snapd-smoke | MATCH "I'm a snap!"
-# This task fails because LXD container created by snapcraft cannot access network.
-manual: true
 debug: |
-    snap run lxd.lxc project list || true
-    snap run lxd.lxc list --project=snapcraft || true
-    snap run lxd.lxc network show lxdbr0
-    ip addr list
-    ip link list
-    if command -v iptables; then
-        iptables -t nat -L POSTROUTING
-    fi
     cat ~/.local/state/snapcraft/log/snapcraft-*.log || true
 prepare: |
     snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
@@ -28,34 +27,22 @@ prepare: |
     snap run lxd waitready
     # Initialize LXD storage and networking with default settings.
     snap run lxd init --auto
-    # Configure firewall to allow network traffic.
-    # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/
-    snap run lxd.lxc network set lxdbr0 ipv4.firewall false
-    snap run lxd.lxc network set lxdbr0 ipv4.nat false
-    snap run lxd.lxc network set lxdbr0 ipv6.address ""
-    snap run lxd.lxc network set lxdbr0 ipv6.firewall false
-    snap run lxd.lxc network set lxdbr0 ipv6.nat false
-    if command -v firewall-cmd; then
-        firewall-cmd --add-interface=lxdbr0 --zone=trusted --permanent
-        firewall-cmd --reload
-    fi
-    if command -v ufw; then
-        ufw allow in on lxdbr0
-        ufw route allow in on lxdbr0
-        ufw route allow out on lxdbr0
-    fi
-    if command -v iptables; then
-        iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
-        iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
-    fi
-    if command -v ip6tables; then
-        ip6tables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
-        ip6tables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
+    # Allow LXD to connect to the network on systems where Docker is also installed.
+    if [ -n "$(command -v docker)" ]; then
+        if command -v iptables; then
+            iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
+            iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
+        fi
+        if command -v ip6tables; then
+            ip6tables -I DOCKER-USER -i lxdbr0 -j ACCEPT || true
+            ip6tables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
+        fi
     fi
     # Install snapcraft for building a snap.
     snap-install --classic snapcraft latest/"${X_SPREAD_SNAPCRAFT_RISK_LEVEL}"
 restore: |
     snap remove --purge test-snapd-smoke || true
     snap remove --purge snapcraft
+    rm -rfv $HOME/snap/lxd
     snap remove --purge lxd
 summary: Install and see Snapcraft help output.

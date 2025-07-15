@@ -5,41 +5,41 @@ on:
     workflow_dispatch:
         inputs:
             arch-repo-pr:
-                description: 'URL of to the PR to the pkgbuilds repository'
+                description: "URL of to the PR to the pkgbuilds repository"
                 type: string
                 required: true
             arch-repo-subdir:
-                description: 'Path in the pkgbuilds repository to the snapd packaging'
+                description: "Path in the pkgbuilds repository to the snapd packaging"
                 type: string
                 required: true
             snapd-risk-level:
-                description: 'Store risk level of the snapd snap'
+                description: "Store risk level of the snapd snap"
                 type: string
-                default: 'beta'
+                default: "beta"
                 required: true
             lxd-risk-level:
-                description: 'Store risk level of the LXD snap'
+                description: "Store risk level of the LXD snap"
                 type: string
-                default: 'candidate'
+                default: "candidate"
                 required: true
             maas-risk-level:
-                description: 'Store risk level of the MAAS snap'
+                description: "Store risk level of the MAAS snap"
                 type: string
-                default: 'candidate'
+                default: "candidate"
                 required: true
             snapcraft-risk-level:
-                description: 'Store risk level of the snapcraft snap'
+                description: "Store risk level of the snapcraft snap"
                 type: string
-                default: 'stable'
+                default: "stable"
                 required: true
             docker-risk-level:
-                description: 'Store risk level of the docker snap'
+                description: "Store risk level of the docker snap"
                 type: string
                 default: stable
             image-garden-channel:
-                description: 'Store channel of the image-garden snap'
+                description: "Store channel of the image-garden snap"
                 type: string
-                default: 'latest/edge'
+                default: "latest/edge"
                 required: true
 jobs:
     spread:
@@ -66,7 +66,7 @@ jobs:
                 echo X_SPREAD_ARCH_SNAPD_PR="${{ inputs.arch-repo-pr || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_ARCH_SNAPD_REPO_SUBDIR="${{ inputs.arch-repo-subdir || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@v0
+              uses: zyga/image-garden-action@v0.1
               with:
                 garden-system: archlinux-cloud
                 snapd-channel: latest/edge

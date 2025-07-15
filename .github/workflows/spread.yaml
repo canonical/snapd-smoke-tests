@@ -6,41 +6,41 @@ on:
         branches: ["main"]
     pull_request:
         paths:
-            - '.github/workflows/spread.yaml'
-            - 'bin/*'
-            - 'spread.yaml'
-            - 'spread/*.sh'
-            - 'tests/**'
+            - ".github/workflows/spread.yaml"
+            - "bin/*"
+            - "spread.yaml"
+            - "spread/*.sh"
+            - "tests/**"
     workflow_dispatch:
         inputs:
             snapd-risk-level:
-                description: 'Store risk level of the snapd snap'
+                description: "Store risk level of the snapd snap"
                 type: string
-                default: 'beta'
+                default: "beta"
                 required: true
             lxd-risk-level:
-                description: 'Store risk level of the LXD snap'
+                description: "Store risk level of the LXD snap"
                 type: string
-                default: 'candidate'
+                default: "candidate"
                 required: true
             maas-risk-level:
-                description: 'Store risk level of the MAAS snap'
+                description: "Store risk level of the MAAS snap"
                 type: string
-                default: 'candidate'
+                default: "candidate"
                 required: true
             snapcraft-risk-level:
-                description: 'Store risk level of the snapcraft snap'
+                description: "Store risk level of the snapcraft snap"
                 type: string
-                default: 'stable'
+                default: "stable"
                 required: true
             docker-risk-level:
-                description: 'Store risk level of the docker snap'
+                description: "Store risk level of the docker snap"
                 type: string
                 default: stable
             image-garden-channel:
-                description: 'Store channel of the image-garden snap'
+                description: "Store channel of the image-garden snap"
                 type: string
-                default: 'latest/edge'
+                default: "latest/edge"
                 required: true
 jobs:
     canary:
@@ -65,7 +65,7 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@v0
+              uses: zyga/image-garden-action@v0.1
               with:
                 snapd-channel: latest/edge
                 garden-system: ubuntu-cloud-24.04
@@ -114,7 +114,7 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@v0
+              uses: zyga/image-garden-action@v0.1
               with:
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}

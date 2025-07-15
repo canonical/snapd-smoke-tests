@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 name: arch
+run-name: Test Arch Pull Request ${{ inputs.arch-repo-pr }}
 on:
     workflow_dispatch:
         inputs:

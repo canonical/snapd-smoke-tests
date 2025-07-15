@@ -66,7 +66,7 @@ jobs:
                 echo X_SPREAD_ARCH_SNAPD_PR="${{ inputs.arch-repo-pr || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_ARCH_SNAPD_REPO_SUBDIR="${{ inputs.arch-repo-subdir || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@v0
+              uses: zyga/image-garden-action@v0.1
               with:
                 garden-system: archlinux-cloud
                 snapd-channel: latest/edge

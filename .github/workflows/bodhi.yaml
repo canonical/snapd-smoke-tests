@@ -70,7 +70,7 @@ jobs:
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_BODHI_ADVISORY_ID="${{ inputs.bodhi-advisory-id || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@v0
+              uses: zyga/image-garden-action@v0.1
               with:
                 garden-system: ${{inputs.garden-system }}
                 snapd-channel: latest/edge

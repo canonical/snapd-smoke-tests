@@ -14,7 +14,9 @@ systems:
     - -ubuntu-cloud-20.04
 execute: |
     snap run snapcraft --help 2>&1 | MATCH 'Package, distribute, and update snaps for Linux and IoT'
-    ( cd test-snapd-smoke && snap run snapcraft -v )
+    # This may fail due to https://github.com/canonical/lxd/issues/12084
+    # so give it a 2nd chance in case of failure.
+    ( cd test-snapd-smoke && snap run snapcraft -v || snap run snapcraft -v )
     snap install --dangerous ./test-snapd-smoke/test-snapd-smoke_1.0.0_*.snap
     snap run test-snapd-smoke | MATCH "I'm a snap!"
 debug: |

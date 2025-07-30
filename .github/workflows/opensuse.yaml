@@ -1,0 +1,99 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Canonical Ltd.
+name: opensuse
+run-name: Test openSUSE Package from ${{ inputs.opensuse-obs-project }} project
+on:
+    workflow_dispatch:
+        inputs:
+            opensuse-variant:
+                description: "openSUSE variant"
+                type: string
+                default: "opensuse-cloud-tumbleweed"
+            opensuse-obs-project:
+                description: "openSUSE OBS project"
+                type: string
+                default: "system:snappy"
+            snapd-risk-level:
+                description: "Store risk level of the snapd snap"
+                type: choice
+                default: beta
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            lxd-risk-level:
+                description: "Store risk level of the LXD snap"
+                type: choice
+                default: candidate
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            maas-risk-level:
+                description: "Store risk level of the MAAS snap"
+                type: choice
+                default: candidate
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            snapcraft-risk-level:
+                description: "Store risk level of the snapcraft snap"
+                type: choice
+                default: stable
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            docker-risk-level:
+                description: "Store risk level of the docker snap"
+                type: choice
+                default: stable
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            image-garden-channel:
+                description: "Store channel of the image-garden snap"
+                type: string
+                default: "latest/edge"
+                required: true
+jobs:
+    spread:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              # This is essential for git restore-mtime to work correctly.
+              with:
+                fetch-depth: 0
+            - name: Cache downloaded snaps
+              uses: actions/cache@v4
+              with:
+                path: .image-garden/cache-*/snaps
+                key: snaps
+            - name: Set environment variables for spread
+              run: |
+                # Export variables that spread picks up from the host.
+                echo X_SPREAD_SNAPD_RISK_LEVEL="${{ inputs.snapd-risk-level || 'beta' }}" >> $GITHUB_ENV
+                echo X_SPREAD_LXD_RISK_LEVEL="${{ inputs.lxd-risk-level || 'candidate' }}" >> $GITHUB_ENV
+                echo X_SPREAD_MAAS_RISK_LEVEL="${{ inputs.maas-risk-level || 'candidate' }}" >> $GITHUB_ENV
+                echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
+                echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
+                echo X_SPREAD_OPENSUSE_OBS_PROJECT="${{ inputs.opensuse-obs-project || '' }}" >> $GITHUB_ENV
+            - name: Run integration tests
+              uses: zyga/image-garden-action@v0.1
+              with:
+                garden-system: ${{ inputs.opensuse-variant }}
+                snapd-channel: latest/edge
+                image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 set -xeu
@@ -66,6 +66,25 @@ archlinux-*)
 		)
 		systemctl enable --now snapd.socket
 		systemctl enable --now snapd.apparmor.service
+	fi
+	;;
+opensuse-*)
+	if [ -n "$X_SPREAD_OPENSUSE_OBS_PROJECT" ]; then
+		# eg. home:maciek_borzecki:branches:system:snappy
+		# the repo path is: https://download.opensuse.org/repositories/home:/maciek_borzecki:/branches:/system:/snappy/<opensuse-version>
+		# e.g: https://download.opensuse.org/repositories/home:/maciek_borzecki:/branches:/system:/snappy/openSUSE_Tumbleweed
+		# TODO support more releases than just tumbleweed
+		zypper ar --refresh \
+			"https://download.opensuse.org/repositories/${X_SPREAD_OPENSUSE_OBS_PROJECT//:/:/}/openSUSE_Tumbleweed" \
+			test-snappy
+		zypper --gpg-auto-import-keys refresh
+		# needs --allow-vendor-change to change the package vendor from default
+		# system:snappy to one corresponding to the provided project
+		zypper in --allow-vendor-change --from test-snappy -y snapd
+		systemctl enable --now snapd.socket
+		if aa-enabled; then
+			systemctl enable --now snapd.apparmor.service
+		fi
 	fi
 	;;
 esac

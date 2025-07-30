@@ -59,3 +59,9 @@ separate repository mirroring the AUR one on GitHub or Gitlab. Open a PR and set
 with [aurpublish](https://github.com/eli-schwartz/aurpublish), you can set
 `X_SPREAD_ARCH_REPO_SUBDIR` to point to the directory where snapd packaging
 files are located.
+
+## Testing snapd openSUSE Packages
+
+By default snapd will be installed from the `system:snappy` OBS project. One can
+set `X_SPREAD_OPENSUSE_OBS_PROJECT` to run tests with snapd package from a
+custom OBS project, e.g `X_SPREAD_OPENSUSE_OBS_PROJECT=home:my_user_on_obs:branches:system:snappy`.

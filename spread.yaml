@@ -102,6 +102,7 @@ environment:
     X_SPREAD_BODHI_ADVISORY_ID: '$(HOST: echo "${X_SPREAD_BODHI_ADVISORY_ID:-}")'
     X_SPREAD_ARCH_SNAPD_PR: '$(HOST: echo "${X_SPREAD_ARCH_SNAPD_PR:-}")'
     X_SPREAD_ARCH_SNAPD_REPO_SUBDIR: '$(HOST: echo "${X_SPREAD_ARCH_SNAPD_REPO_SUBDIR:-}")'
+    X_SPREAD_OPENSUSE_OBS_PROJECT: '$(HOST: echo "${X_SPREAD_OPENSUSE_OBS_PROJECT:-}")'
 exclude:
     - .image-garden
     - .git

@@ -87,6 +87,25 @@ opensuse-*)
 		fi
 	fi
 	;;
+amazonlinux-*)
+	if [ -n "$X_SPREAD_AMAZON_REPO_FILE" ]; then
+		rm -v /etc/yum.repos.d/snapd.repo
+		# this contains a directory named repo containing snapd.repo file
+		tar xvf "$X_SPREAD_AMAZON_REPO_FILE"
+		# update the repo to point to the local directory
+		sed -e "s#^baseurl=.*\(\$basearch\|sources\)#baseurl=file://$PWD/repo/\1#" <repo/snapd.repo >/etc/yum.repos.d/snapd.repo
+		# since snapd is already installed this should sync snapd to whatever
+		# version is available in the repository
+		case "$SPREAD_SYSTEM" in
+		amazonlinux-cloud-2023*)
+			dnf distro-sync -y
+			;;
+		*)
+			yum distro-sync -y
+			;;
+		esac
+	fi
+	;;
 esac
 
 # Show the list of pre-installed snaps.

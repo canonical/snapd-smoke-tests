@@ -60,8 +60,23 @@ with [aurpublish](https://github.com/eli-schwartz/aurpublish), you can set
 `X_SPREAD_ARCH_REPO_SUBDIR` to point to the directory where snapd packaging
 files are located.
 
-## Testing snapd openSUSE Packages
+## Testing snapd openSUSE packages
 
 By default snapd will be installed from the `system:snappy` OBS project. One can
 set `X_SPREAD_OPENSUSE_OBS_PROJECT` to run tests with snapd package from a
-custom OBS project, e.g `X_SPREAD_OPENSUSE_OBS_PROJECT=home:my_user_on_obs:branches:system:snappy`.
+custom OBS project, e.g. `X_SPREAD_OPENSUSE_OBS_PROJECT=home:my_user_on_obs:branches:system:snappy`.
+
+## Testing Amazon Linux packages
+
+By default snapd will be installed from a community repository hosted at
+https://bboozzoo.github.io/snapd-amazon-linux.
+
+The artifacts provided in that repository are built using tooling from
+https://github.com/bboozzoo/snapd-amazon-linux. The repository tarballs
+generated with the tooling can be directly consumed by the smoke test suite by
+setting `X_SPREAD_AMAZON_REPO_FILE` to the relative path of the `*.tar.xz*`
+repository tarball. For example:
+
+```sh
+X_SPREAD_AMAZON_REPO_FILE=./amazon-linux-2-repo.tar.xz  spread -v garden:amazonlinux-cloud-2023:tests/server/...
+```

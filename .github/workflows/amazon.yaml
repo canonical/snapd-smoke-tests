@@ -1,0 +1,130 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Canonical Ltd.
+name: opensuse
+run-name: Test Amazon Linux package from an action artifact in https://github.com/bboozzoo/snapd-amazon-linux
+on:
+    workflow_dispatch:
+        inputs:
+            amazon-variant:
+                description: "Amazon Linux variant"
+                type: string
+                default: "amazonlinux-cloud-2023"
+            artifact-repo:
+                # typically https://github.com/bboozzoo/snapd-amazon-linux
+                description: "Github repository which produced artifacts, format: OWNER/NAME"
+                type: string
+                default: "bboozzoo/snapd-amazon-linux"
+            artifact-rep-run-id:
+                description: "Github action run ID in the artifact repository"
+                required: true
+            snapd-risk-level:
+                description: "Store risk level of the snapd snap"
+                type: choice
+                default: beta
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            lxd-risk-level:
+                description: "Store risk level of the LXD snap"
+                type: choice
+                default: candidate
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            maas-risk-level:
+                description: "Store risk level of the MAAS snap"
+                type: choice
+                default: candidate
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            snapcraft-risk-level:
+                description: "Store risk level of the snapcraft snap"
+                type: choice
+                default: stable
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            docker-risk-level:
+                description: "Store risk level of the docker snap"
+                type: choice
+                default: stable
+                required: true
+                options:
+                    - stable
+                    - candidate
+                    - beta
+                    - edge
+            image-garden-channel:
+                description: "Store channel of the image-garden snap"
+                type: string
+                default: "latest/edge"
+                required: true
+env:
+    GH_TOKEN: ${{ github.token }}
+
+jobs:
+    spread:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              # This is essential for git restore-mtime to work correctly.
+              with:
+                fetch-depth: 0
+            - name: Cache downloaded snaps
+              uses: actions/cache@v4
+              with:
+                path: .image-garden/cache-*/snaps
+                key: snaps
+            - name: Download artifacts
+              run: |
+                # downloads and extracts the artifacts
+                gh run download -R "${{ inputs.artifact-repo }}" "${{ inputs.artifact-repo-run-id }}"
+                # we should get the following files:
+                # repo-tarball-amazonlinux-2/amazon-linux-2-repo.tar.xz
+                # repo-tarball-amazonlinux-2023/amazon-linux-2023-repo.tar.xz
+                case "${{ inputs.amazon-variant }}" in
+                amazonlinux-cloud-2023*)
+                    repo_file=./repo-tarball-amazonlinux-2023/amazon-linux-2023-repo.tar.xz
+                    ;;
+                amazonlinux-cloud-2)
+                    repo_file=./repo-tarball-amazonlinux-2/amazon-linux-2-repo.tar.xz
+                    ;;
+                *)
+                    echo "unexpected variant?"
+                    exit 1
+                    ;;
+                esac
+                # XXX use relative repo file path, which remains true when used
+                # inside the spread allocated system with the contents of
+                # current directory uploaded as input
+                echo X_SPREAD_AMAZON_REPO_FILE="$repo_file" >> $GITHUB_ENV
+            - name: Set environment variables for spread
+              run: |
+                # Export other variables that spread picks up from the host.
+                echo X_SPREAD_SNAPD_RISK_LEVEL="${{ inputs.snapd-risk-level || 'beta' }}" >> $GITHUB_ENV
+                echo X_SPREAD_LXD_RISK_LEVEL="${{ inputs.lxd-risk-level || 'candidate' }}" >> $GITHUB_ENV
+                echo X_SPREAD_MAAS_RISK_LEVEL="${{ inputs.maas-risk-level || 'candidate' }}" >> $GITHUB_ENV
+                echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
+                echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
+            - name: Run integration tests
+              uses: zyga/image-garden-action@v0.1
+              with:
+                garden-system: ${{ inputs.amazon-variant }}
+                snapd-channel: latest/edge
+                image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
+                # only server specific tests
+                spread-tasks: "tests/server/..."

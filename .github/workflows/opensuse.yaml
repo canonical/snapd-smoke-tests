@@ -97,3 +97,8 @@ jobs:
                 garden-system: ${{ inputs.opensuse-variant }}
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
+            - name: Upload spread artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: ${{ inputs.opensuse-variant }}-artifacts
+                path: ./artifacts

@@ -14,7 +14,7 @@ on:
                 description: "Github repository which produced artifacts, format: OWNER/NAME"
                 type: string
                 default: "bboozzoo/snapd-amazon-linux"
-            artifact-rep-run-id:
+            artifact-repo-run-id:
                 description: "Github action run ID in the artifact repository"
                 required: true
             snapd-risk-level:

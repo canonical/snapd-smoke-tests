@@ -91,11 +91,13 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@v0.1
+              uses: zyga/image-garden-action@f123c4b9571a142e6beb551f7e900dd6a4370d89
               with:
                 snapd-channel: latest/edge
                 garden-system: ubuntu-cloud-24.04
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
+                spread-artifacts: artifacts
+                spread-artifacts-suffix: ubuntu-cloud-24.04
     test:
         runs-on: ubuntu-latest
         needs: canary
@@ -140,9 +142,11 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@v0.1
+              uses: zyga/image-garden-action@f123c4b9571a142e6beb551f7e900dd6a4370d89
               with:
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 garden-system: ${{ matrix.garden-system }}
                 cache-prepared-images: ${{ matrix.garden-system == 'archlinux-cloud' }}
+                spread-artifacts: artifacts
+                spread-artifacts-suffix: ${{ matrix.garden-system }}

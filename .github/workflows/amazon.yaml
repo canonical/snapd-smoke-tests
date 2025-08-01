@@ -129,3 +129,8 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 # only server specific tests
                 spread-tasks: "tests/server/..."
+            - name: Upload spread artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: ${{ inputs.amazon-variant }}-artifacts
+                path: ./artifacts

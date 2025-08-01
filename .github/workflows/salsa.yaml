@@ -93,3 +93,8 @@ jobs:
                 garden-system: debian-cloud-sid
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
+            - name: Upload spread artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: debian-cloud-sid-artifacts
+                path: ./artifacts

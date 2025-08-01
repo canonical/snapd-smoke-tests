@@ -146,3 +146,8 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 garden-system: ${{ matrix.garden-system }}
                 cache-prepared-images: ${{ matrix.garden-system == 'archlinux-cloud' }}
+            - name: Upload spread artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                name: ${{ matrix.garden-system }}-artifacts
+                path: ./artifacts

@@ -92,8 +92,10 @@ jobs:
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_OPENSUSE_OBS_PROJECT="${{ inputs.opensuse-obs-project || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@v0.1
+              uses: zyga/image-garden-action@f123c4b9571a142e6beb551f7e900dd6a4370d89
               with:
                 garden-system: ${{ inputs.opensuse-variant }}
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
+                spread-artifacts: artifacts
+                spread-artifacts-suffix: ${{ inputs.opensuse-variant }}

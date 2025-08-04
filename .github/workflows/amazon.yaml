@@ -122,10 +122,12 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@v0.1
+              uses: zyga/image-garden-action@f123c4b9571a142e6beb551f7e900dd6a4370d89
               with:
                 garden-system: ${{ inputs.amazon-variant }}
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 # only server specific tests
                 spread-tasks: "tests/server/..."
+                spread-artifacts: artifacts
+                spread-artifacts-suffix: ${{ inputs.amazon-variant }}

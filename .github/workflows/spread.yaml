@@ -116,6 +116,7 @@ jobs:
                     - fedora-cloud-41
                     - fedora-cloud-42
                     - opensuse-cloud-tumbleweed
+                    - opensuse-cloud-tumbleweed-selinux
                     - ubuntu-cloud-20.04
                     - ubuntu-cloud-22.04
                     # This is duplicating the canary job.

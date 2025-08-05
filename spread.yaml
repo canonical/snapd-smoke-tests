@@ -69,6 +69,11 @@ backends:
                 password: root
                 username: root
                 workers: 2
+            - opensuse-cloud-tumbleweed-selinux:
+                manual: true
+                password: root
+                username: root
+                workers: 2
             - archlinux-cloud:
                 manual: true
                 password: root

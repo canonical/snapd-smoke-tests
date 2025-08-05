@@ -9,6 +9,10 @@ on:
                 description: "openSUSE variant"
                 type: string
                 default: "opensuse-cloud-tumbleweed"
+                required: true
+                options:
+                    - opensuse-cloud-tumbleweed
+                    - opensuse-cloud-tumbleweed-selinux
             opensuse-obs-project:
                 description: "openSUSE OBS project"
                 type: string

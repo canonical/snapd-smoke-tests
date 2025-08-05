@@ -126,7 +126,27 @@ $(snapd_suspend_workaround)
 - echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
 # Tumbleweed is now using SELinux. Switch it back to AppArmor
 - sed -i -e 's/security=selinux/security=apparmor/g' /etc/default/grub
+- sed -i -e 's/selinux=1//g' /etc/default/grub
 - update-bootloader
+# Add the system:snappy repository and install snapd
+- zypper addrepo --refresh https://download.opensuse.org/repositories/system:/snappy/openSUSE_Tumbleweed snappy
+- zypper --gpg-auto-import-keys refresh
+- zypper dup --from snappy
+- zypper install -y snapd
+- systemctl enable --now snapd.socket
+- systemctl enable --now snapd.apparmor.service
+packages:
+- curl
+- jq
+endef
+
+define OPENSUSE_tumbleweed-selinux_CLOUD_INIT_USER_DATA_TEMPLATE
+$(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
+$(snapd_suspend_workaround)
+# https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
+- echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
+# TODO drop when snapd is ready
+- sed -i -e 's/^SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
 # Add the system:snappy repository and install snapd
 - zypper addrepo --refresh https://download.opensuse.org/repositories/system:/snappy/openSUSE_Tumbleweed snappy
 - zypper --gpg-auto-import-keys refresh
@@ -162,3 +182,27 @@ packages:
 - curl
 - jq
 endef
+
+opensuse-cloud-tumbleweed-selinux.x86_64.run: $(MAKEFILE_LIST) | opensuse-cloud-tumbleweed-selinux.x86_64.qcow2 opensuse-cloud-tumbleweed.x86_64.efi-code.img opensuse-cloud-tumbleweed.x86_64.efi-vars.img
+	echo "#!/bin/sh" >$@
+	echo 'set -xeu' >>$@
+	echo "# WARNING: The .qcow2 file refers to a file in $(GARDEN_DL_DIR)/opensuse" >>$@
+	echo '$(strip $(call QEMU_SYSTEM_X86_64_EFI_CMDLINE,$(word 1,$|),$(word 2,$|),$(word 3,$|)) "$$@")' >>$@
+	chmod +x $@
+
+opensuse-cloud-tumbleweed-selinux.x86_64.qcow2: $(GARDEN_DL_DIR)/opensuse/opensuse-cloud-tumbleweed.x86_64.qcow2 opensuse-cloud-tumbleweed-selinux.x86_64.seed.iso opensuse-cloud-tumbleweed-selinux.x86_64.efi-code.img opensuse-cloud-tumbleweed-selinux.x86_64.efi-vars.img
+	$(strip $(QEMU_IMG) create -f qcow2 -b $< -F qcow2 $@ $(QEMU_IMG_SIZE))
+	$(strip $(call QEMU_SYSTEM_X86_64_EFI_CMDLINE,$@,$(word 3,$^),$(word 4,$^)) \
+    -drive file=$(word 2,$^),format=raw,id=drive1,if=none,readonly=true,media=cdrom \
+    -device virtio-blk,drive=drive1 \
+    | tee $@.log)
+
+opensuse-cloud-tumbleweed-selinux.x86_64.meta-data: export META_DATA = $(call CLOUD_INIT_META_DATA_TEMPLATE,opensuse)
+opensuse-cloud-tumbleweed-selinux.x86_64.meta-data: $(MAKEFILE_LIST)
+	echo "$${META_DATA}" | tee $@
+	touch --reference=$(shell stat $^ -c '%Y %n' | sort -nr | cut -d ' ' -f 2 | head -n 1) $@
+
+opensuse-cloud-tumbleweed-selinux.x86_64.user-data: export USER_DATA = $(call $(call PICK_CLOUD_INIT_USER_DATA_TEMPLATE_FOR,OPENSUSE,tumbleweed-selinux),opensuse-tumbleweed,opensuse)
+opensuse-cloud-tumbleweed-selinux.x86_64.user-data: $(MAKEFILE_LIST) $(wildcard $(GARDEN_PROJECT_DIR)/.image-garden.mk)
+	echo "$${USER_DATA}" | tee $@
+	touch --reference=$(shell stat $^ -c '%Y %n' | sort -nr | cut -d ' ' -f 2 | head -n 1) $@

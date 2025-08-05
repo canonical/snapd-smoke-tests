@@ -20,6 +20,10 @@ endef
 define ARCHLINUX_CLOUD_INIT_USER_DATA_TEMPLATE
 $(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
 $(snapd_suspend_workaround)
+# enable AppArmor
+- sed -i -e 's/GRUB_CMDLINE_LINUX_DEFAULT="\(.*\)"/GRUB_CMDLINE_LINUX_DEFAULT="\1 lsm=landlock,lockdown,yama,integrity,apparmor,bpf"/' /etc/default/grub
+- grub-mkconfig -o /boot/grub/grub.cfg
+- systemctl enable --now apparmor.service
 # We cannot build the package as root so switch to the archlinux user.
 - sudo -u archlinux git clone https://aur.archlinux.org/snapd.git /var/tmp/snapd
 - cd /var/tmp/snapd && sudo -u archlinux makepkg -si --noconfirm
@@ -28,6 +32,7 @@ $(snapd_suspend_workaround)
 # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
 - echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
 packages:
+- apparmor
 - curl
 - jq
 # To clone and build snapd.

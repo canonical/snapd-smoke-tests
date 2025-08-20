@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 name: opensuse
-run-name: Test openSUSE Package from ${{ inputs.opensuse-obs-project }} project
+run-name: Test openSUSE Package from ${{ inputs.opensuse-obs-project }} project on ${{ inputs.opensuse-variant }}
 on:
     workflow_dispatch:
         inputs:

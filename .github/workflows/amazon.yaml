@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 name: amazon
-run-name: Test Amazon Linux package from an action artifact in https://github.com/bboozzoo/snapd-amazon-linux
+run-name: Test Amazon Linux package from an action artifact in https://github.com/bboozzoo/snapd-amazon-linux on ${{ inputs.amazon-variant }}
 on:
     workflow_dispatch:
         inputs:

@@ -17,6 +17,22 @@ execute: |
       snap version
       echo
       snap list snapd
+      echo
+      ps -efZ |grep '[s]napd'
+
+      echo "===== sandbox"
+      echo
+
+      snap debug lsm
+      snap debug sandbox-features
+      snap debug confinement
+
+      echo
+      echo "===== reexec"
+      echo
+
+      snap debug execution snap
+      snap debug execution apparmor
 
       echo
       echo "==== native snapd package"

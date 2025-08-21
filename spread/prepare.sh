@@ -40,6 +40,11 @@ debian-cloud-sid)
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.salsa.debug
 	fi
+	if [ -n "${X_SPREAD_DEBIAN_LOCAL_SNAPD_DEB:-}" ]; then
+		apt install -y "$SPREAD_PATH"/incoming/"$X_SPREAD_DEBIAN_LOCAL_SNAPD_DEB"
+		# Show the version of classically updated snapd.
+		snap version | tee snap-version.local.debug
+	fi
 	;;
 fedora-* | centos-*)
 	# If requested, download and install a custom build of snapd from the

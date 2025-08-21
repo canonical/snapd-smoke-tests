@@ -114,6 +114,7 @@ environment:
     X_SPREAD_ARCH_SNAPD_REPO_SUBDIR: '$(HOST: echo "${X_SPREAD_ARCH_SNAPD_REPO_SUBDIR:-}")'
     X_SPREAD_OPENSUSE_OBS_PROJECT: '$(HOST: echo "${X_SPREAD_OPENSUSE_OBS_PROJECT:-}")'
     X_SPREAD_AMAZON_REPO_FILE: '$(HOST: echo "${X_SPREAD_AMAZON_REPO_FILE:-}")'
+    X_SPREAD_LOCAL_SNAPD_PKG: '$(HOST: echo "${X_SPREAD_LOCAL_SNAPD_PKG:-}")'
 exclude:
     - .image-garden
     - .git

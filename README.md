@@ -13,7 +13,7 @@ The following distributions are tested on x86\_64 hardware:
 - Amazon Linux (2 and 2023)
 - Arch Linux
 - CentOS (9 and 10)
-- Debian (11, 12 and sid)
+- Debian (11, 12, 13 and sid)
 - Fedora (41 and 42)
 - Ubuntu (LTSes since 20.04, devel releases and upcoming release)
 - openSUSE (Tumbleweed with AppArmor)

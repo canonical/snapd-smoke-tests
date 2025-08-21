@@ -112,6 +112,7 @@ jobs:
                     - centos-cloud-9
                     - debian-cloud-11
                     - debian-cloud-12
+                    - debian-cloud-13
                     - debian-cloud-sid
                     - fedora-cloud-41
                     - fedora-cloud-42

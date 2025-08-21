@@ -1,71 +1,69 @@
 summary: Record information about installed snapd package
-
 artifacts:
-  - installed-snapd-info.log
-
+    - installed-snapd-info.log
 execute: |
-  (
-      set -x
-      echo "==== system"
-      echo
-      cat /etc/os-release
+    (
+        set -x
+        echo "==== system"
+        echo
+        cat /etc/os-release
 
-      echo
-      echo "==== snapd"
-      echo
+        echo
+        echo "==== snapd"
+        echo
 
-      snap version
-      echo
-      snap list snapd
-      echo
-      ps -efZ |grep '[s]napd'
+        snap version
+        echo
+        snap list snapd
+        echo
+        ps -efZ |grep '[s]napd'
 
-      echo "===== sandbox"
-      echo
+        echo "===== sandbox"
+        echo
 
-      snap debug lsm
-      snap debug sandbox-features
-      snap debug confinement
+        snap debug lsm
+        snap debug sandbox-features
+        snap debug confinement
 
-      echo
-      echo "===== reexec"
-      echo
+        echo
+        echo "===== reexec"
+        echo
 
-      snap debug execution snap
-      snap debug execution apparmor
+        snap debug execution snap
+        snap debug execution apparmor
 
-      echo
-      echo "==== native snapd package"
-      echo
+        echo
+        echo "==== native snapd package"
+        echo
 
-      if command -v dpkg &> /dev/null ; then
-          dpkg -l snapd
-      fi
+        if command -v dpkg &> /dev/null ; then
+            dpkg -l snapd
+        fi
 
-      if command -v apt &> /dev/null; then
-          apt show snapd
-          echo
-          apt policy snapd
-      fi
+        if command -v apt &> /dev/null; then
+            apt show snapd
+            echo
+            apt policy snapd
+        fi
 
-      if command -v rpm &> /dev/null; then
-          rpm -qa snap\* | sort
-          echo
-          rpm -qi snapd
-      fi
+        if command -v rpm &> /dev/null; then
+            rpm -qa snap\* | sort
+            echo
+            rpm -qi snapd
+        fi
 
-      if command -v pacman &> /dev/null; then
-          pacman -Qi snapd
-      fi
+        if command -v pacman &> /dev/null; then
+            pacman -Qi snapd
+        fi
 
-      if command -v zypper &> /dev/null; then
-          zypper lr --details
-      fi
+        if command -v zypper &> /dev/null; then
+            zypper lr --details
+        fi
 
-      if command -v yum &> /dev/null; then
-          yum repolist --all
-          echo
-          grep -n '' /etc/yum.repos.d/snapd.repo || true
-      fi
+        if command -v yum &> /dev/null; then
+            yum repolist --all
+            echo
+            grep -n '' /etc/yum.repos.d/snapd.repo || true
+        fi
 
-  ) 2>&1 | tee installed-snapd-info.log
+    ) 2>&1 | tee installed-snapd-info.log

@@ -74,7 +74,6 @@ on:
                 required: true
 env:
     GH_TOKEN: ${{ github.token }}
-
 jobs:
     spread:
         runs-on: ubuntu-latest

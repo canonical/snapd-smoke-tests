@@ -41,14 +41,14 @@ https://salsa.debian.org/debian/snapd and either invoke the GitHub workflow
 
 Note that this is only compatible with `debian-cloud-sid` spread system.
 
-## Testing Fedora or Debian package updates with locally-built snapd
+## Testing Fedora, CentOS or Debian package updates with locally-built snapd
 
 Build snapd for the matching CPU architecture and copy `snapd_*.deb`, or
 `*.rpm` files to the `incoming/` directory of the `snapd-smoke-tests` project.
 Then set the environment variable `X_SPREAD_LOCAL_SNAPD_PKG` to the name of the
-file you've copied and run spread. Remember that for Fedora you need to copy
-the matching snap-confine and snapd-selinux packages. The name of the other
-packages is computed automatically.
+file you've copied and run spread. Remember that for Fedora and CentOS, you
+need to copy the matching snap-confine and snapd-selinux packages. The name of
+the other packages is computed automatically.
 
 For example:
 ```sh

@@ -116,7 +116,6 @@ packages:
 - snapd
 endef
 
-
 define FEDORA_CLOUD_INIT_USER_DATA_TEMPLATE
 $(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
 $(snapd_suspend_workaround)
@@ -155,8 +154,6 @@ $(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
 $(snapd_suspend_workaround)
 # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
 - echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
-# TODO drop when snapd is ready
-- sed -i -e 's/^SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
 # Add the system:snappy repository and install snapd
 - zypper addrepo --refresh https://download.opensuse.org/repositories/system:/snappy/openSUSE_Tumbleweed snappy
 - zypper --gpg-auto-import-keys refresh

@@ -49,6 +49,21 @@ backends:
                 password: root
                 username: root
                 workers: 2
+            - almalinux-cloud-8:
+                manual: true
+                password: root
+                username: root
+                workers: 2
+            - oracle-cloud-8:
+                manual: true
+                password: root
+                username: root
+                workers: 2
+            - rocky-cloud-8:
+                manual: true
+                password: root
+                username: root
+                workers: 2
             - centos-cloud-9:
                 manual: true
                 password: root

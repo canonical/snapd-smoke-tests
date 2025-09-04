@@ -46,7 +46,7 @@ debian-cloud-sid)
 		snap version | tee snap-version.local.debug
 	fi
 	;;
-fedora-* | centos-*)
+oracle-* | almalinux-* | rocky-* | fedora-* | centos-*)
 	# If requested, download and install a custom build of snapd from the
 	# Fedora update system, Bodhi.
 	if [ -n "$X_SPREAD_BODHI_ADVISORY_ID" ]; then

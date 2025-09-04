@@ -105,6 +105,7 @@ jobs:
             fail-fast: false
             matrix:
                 garden-system:
+                    - almalinux-cloud-8
                     - amazonlinux-cloud-2
                     - amazonlinux-cloud-2023
                     - archlinux-cloud
@@ -116,8 +117,10 @@ jobs:
                     - debian-cloud-sid
                     - fedora-cloud-41
                     - fedora-cloud-42
-                    - opensuse-cloud-tumbleweed
+                    - opensuse-cloud-tumbleweed-apparmor
                     - opensuse-cloud-tumbleweed-selinux
+                    - oracle-cloud-8
+                    - rocky-cloud-8
                     - ubuntu-cloud-20.04
                     - ubuntu-cloud-22.04
                     # This is duplicating the canary job.

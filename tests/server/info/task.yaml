@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Canonical Ltd.
 summary: Record information about installed snapd package
 artifacts:
     - installed-snapd-info.log

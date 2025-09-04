@@ -8,10 +8,10 @@ on:
             opensuse-variant:
                 description: "openSUSE variant"
                 type: string
-                default: "opensuse-cloud-tumbleweed"
+                default: "opensuse-cloud-tumbleweed-apparmor"
                 required: true
                 options:
-                    - opensuse-cloud-tumbleweed
+                    - opensuse-cloud-tumbleweed-apparmor
                     - opensuse-cloud-tumbleweed-selinux
             opensuse-obs-project:
                 description: "openSUSE OBS project"

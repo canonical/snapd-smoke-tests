@@ -158,7 +158,7 @@ $(snapd_suspend_workaround)
 - zypper addrepo --refresh https://download.opensuse.org/repositories/system:/snappy/openSUSE_Tumbleweed snappy
 - zypper --gpg-auto-import-keys refresh
 - zypper dup --from snappy
-- zypper install -y snapd
+- zypper install -y snapd snapd-selinux
 - systemctl enable --now snapd.socket
 - systemctl enable --now snapd.apparmor.service
 packages:

@@ -117,7 +117,7 @@ jobs:
                     - debian-cloud-sid
                     - fedora-cloud-41
                     - fedora-cloud-42
-                    - opensuse-cloud-tumbleweed
+                    - opensuse-cloud-tumbleweed-apparmor
                     - opensuse-cloud-tumbleweed-selinux
                     - oracle-cloud-8
                     - rocky-cloud-8

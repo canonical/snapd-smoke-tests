@@ -128,7 +128,7 @@ packages:
 - snapd
 endef
 
-define OPENSUSE_tumbleweed_CLOUD_INIT_USER_DATA_TEMPLATE
+define OPENSUSE_tumbleweed-apparmor_CLOUD_INIT_USER_DATA_TEMPLATE
 $(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
 $(snapd_suspend_workaround)
 # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
@@ -189,6 +189,32 @@ packages:
 - jq
 endef
 
+# apparmor variant
+opensuse-cloud-tumbleweed-apparmor.x86_64.run: $(MAKEFILE_LIST) | opensuse-cloud-tumbleweed-apparmor.x86_64.qcow2 opensuse-cloud-tumbleweed.x86_64.efi-code.img opensuse-cloud-tumbleweed.x86_64.efi-vars.img
+	echo "#!/bin/sh" >$@
+	echo 'set -xeu' >>$@
+	echo "# WARNING: The .qcow2 file refers to a file in $(GARDEN_DL_DIR)/opensuse" >>$@
+	echo '$(strip $(call QEMU_SYSTEM_X86_64_EFI_CMDLINE,$(word 1,$|),$(word 2,$|),$(word 3,$|)) "$$@")' >>$@
+	chmod +x $@
+
+opensuse-cloud-tumbleweed-apparmor.x86_64.qcow2: $(GARDEN_DL_DIR)/opensuse/opensuse-cloud-tumbleweed.x86_64.qcow2 opensuse-cloud-tumbleweed-apparmor.x86_64.seed.iso opensuse-cloud-tumbleweed-apparmor.x86_64.efi-code.img opensuse-cloud-tumbleweed-apparmor.x86_64.efi-vars.img
+	$(strip $(QEMU_IMG) create -f qcow2 -b $< -F qcow2 $@ $(QEMU_IMG_SIZE))
+	$(strip $(call QEMU_SYSTEM_X86_64_EFI_CMDLINE,$@,$(word 3,$^),$(word 4,$^)) \
+    -drive file=$(word 2,$^),format=raw,id=drive1,if=none,readonly=true,media=cdrom \
+    -device virtio-blk,drive=drive1 \
+    | tee $@.log)
+
+opensuse-cloud-tumbleweed-apparmor.x86_64.meta-data: export META_DATA = $(call CLOUD_INIT_META_DATA_TEMPLATE,opensuse)
+opensuse-cloud-tumbleweed-apparmor.x86_64.meta-data: $(MAKEFILE_LIST)
+	echo "$${META_DATA}" | tee $@
+	touch --reference=$(shell stat $^ -c '%Y %n' | sort -nr | cut -d ' ' -f 2 | head -n 1) $@
+
+opensuse-cloud-tumbleweed-apparmor.x86_64.user-data: export USER_DATA = $(call $(call PICK_CLOUD_INIT_USER_DATA_TEMPLATE_FOR,OPENSUSE,tumbleweed-apparmor),opensuse-tumbleweed,opensuse)
+opensuse-cloud-tumbleweed-apparmor.x86_64.user-data: $(MAKEFILE_LIST) $(wildcard $(GARDEN_PROJECT_DIR)/.image-garden.mk)
+	echo "$${USER_DATA}" | tee $@
+	touch --reference=$(shell stat $^ -c '%Y %n' | sort -nr | cut -d ' ' -f 2 | head -n 1) $@
+
+# selinux variant
 opensuse-cloud-tumbleweed-selinux.x86_64.run: $(MAKEFILE_LIST) | opensuse-cloud-tumbleweed-selinux.x86_64.qcow2 opensuse-cloud-tumbleweed.x86_64.efi-code.img opensuse-cloud-tumbleweed.x86_64.efi-vars.img
 	echo "#!/bin/sh" >$@
 	echo 'set -xeu' >>$@

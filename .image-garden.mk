@@ -160,7 +160,6 @@ $(snapd_suspend_workaround)
 - zypper dup --from snappy
 - zypper install -y snapd snapd-selinux
 - systemctl enable --now snapd.socket
-- systemctl enable --now snapd.apparmor.service
 packages:
 - curl
 - jq

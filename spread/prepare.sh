@@ -53,7 +53,7 @@ fedora-* | centos-*)
 archlinux-*)
 	if [ -n "$X_SPREAD_ARCH_SNAPD_PR" ]; then
 		rm -rf /var/tmp/snapd
-		upstream_repo="${X_SPREAD_ARCH_SNAPD_PR//pull\/[0-9]\+//}"
+		upstream_repo="${X_SPREAD_ARCH_SNAPD_PR%/pull/*}"
 		pr_num="$(basename "$X_SPREAD_ARCH_SNAPD_PR")"
 		sudo -u archlinux git clone "$upstream_repo" /var/tmp/snapd
 		sudo -u archlinux sh -c "cd /var/tmp/snapd && git fetch origin pull/$pr_num/head:pr && git checkout pr"

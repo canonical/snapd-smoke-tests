@@ -49,6 +49,21 @@ backends:
                 password: root
                 username: root
                 workers: 2
+            - almalinux-cloud-8:
+                manual: true
+                password: root
+                username: root
+                workers: 2
+            - oracle-cloud-8:
+                manual: true
+                password: root
+                username: root
+                workers: 2
+            - rocky-cloud-8:
+                manual: true
+                password: root
+                username: root
+                workers: 2
             - centos-cloud-9:
                 manual: true
                 password: root
@@ -69,7 +84,7 @@ backends:
                 password: root
                 username: root
                 workers: 2
-            - opensuse-cloud-tumbleweed:
+            - opensuse-cloud-tumbleweed-apparmor:
                 manual: true
                 password: root
                 username: root
@@ -114,6 +129,7 @@ environment:
     X_SPREAD_ARCH_SNAPD_REPO_SUBDIR: '$(HOST: echo "${X_SPREAD_ARCH_SNAPD_REPO_SUBDIR:-}")'
     X_SPREAD_OPENSUSE_OBS_PROJECT: '$(HOST: echo "${X_SPREAD_OPENSUSE_OBS_PROJECT:-}")'
     X_SPREAD_AMAZON_REPO_FILE: '$(HOST: echo "${X_SPREAD_AMAZON_REPO_FILE:-}")'
+    X_SPREAD_LOCAL_SNAPD_PKG: '$(HOST: echo "${X_SPREAD_LOCAL_SNAPD_PKG:-}")'
 exclude:
     - .image-garden
     - .git

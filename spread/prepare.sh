@@ -40,14 +40,30 @@ debian-cloud-sid)
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.salsa.debug
 	fi
+	if [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
+		apt install -y "$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAPD_PKG"
+		# Show the version of classically updated snapd.
+		snap version | tee snap-version.local.debug
+	fi
 	;;
-fedora-* | centos-*)
+oracle-* | almalinux-* | rocky-* | fedora-* | centos-*)
 	# If requested, download and install a custom build of snapd from the
 	# Fedora update system, Bodhi.
 	if [ -n "$X_SPREAD_BODHI_ADVISORY_ID" ]; then
 		dnf upgrade --refresh --advisory="$X_SPREAD_BODHI_ADVISORY_ID"
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.bodhi.debug
+	fi
+	if [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
+		X_SPREAD_LOCAL_SNAP_CONFINE_PKG="${X_SPREAD_LOCAL_SNAPD_PKG/snapd/snap-confine}"
+		X_SPREAD_LOCAL_SNAPD_SELINUX_PKG="${X_SPREAD_LOCAL_SNAPD_PKG/snapd/snapd-selinux}"
+		X_SPREAD_LOCAL_SNAPD_SELINUX_PKG="${X_SPREAD_LOCAL_SNAPD_SELINUX_PKG/%x86_64.rpm/noarch.rpm}"
+		dnf install -y \
+			"$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAPD_PKG" \
+			"$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAP_CONFINE_PKG" \
+			"$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAPD_SELINUX_PKG"
+		# Show the version of classically updated snapd.
+		snap version | tee snap-version.local.debug
 	fi
 	;;
 archlinux-*)

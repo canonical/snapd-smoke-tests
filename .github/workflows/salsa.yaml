@@ -88,7 +88,7 @@ jobs:
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_SALSA_JOB_ID="${{ inputs.salsa-job-id || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@d44ef66b28e181e441fc3e8db871018df40b62d3
+              uses: zyga/image-garden-action@329568e2f2125fe231b3b7b8eb9a49a3468ff66a
               with:
                 garden-system: debian-cloud-sid
                 snapd-channel: latest/edge

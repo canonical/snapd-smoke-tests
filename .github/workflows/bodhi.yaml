@@ -16,6 +16,7 @@ on:
                 options:
                     - fedora-cloud-41
                     - fedora-cloud-42
+                    - fedora-cloud-43
                     - centos-cloud-9
                     - centos-cloud-10
             snapd-risk-level:

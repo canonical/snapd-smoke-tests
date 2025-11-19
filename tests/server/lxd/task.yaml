@@ -5,12 +5,18 @@ environment:
     LXD_TRACK/lxd_5_21: "5.21"
     LXD_TRACK/lxd_6: 6
     LXD_TRACK/lxd_latest: latest
+    # the default track may be different than all of the above
+    LXD_TRACK/lxd_default:
 execute: |
     snap run lxd --help | MATCH 'The LXD container manager'
     snap run lxd.lxc launch ubuntu:24.04 u1
     snap run lxd.lxc exec u1 -- cat /etc/os-release | MATCH 'VERSION_ID="24.04"'
 prepare: |
-    snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
+    if [ -n "$LXD_TRACK" ]; then
+        snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
+    else
+        snap-install lxd
+    fi
     # LXD is not immediately ready to accept API requets.
     snap run lxd waitready
     # Initialize LXD storage and networking with default settings.

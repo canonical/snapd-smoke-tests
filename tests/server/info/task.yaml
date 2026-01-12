@@ -35,6 +35,12 @@ execute: |
         snap debug execution apparmor
 
         echo
+        echo "===== paths"
+        echo
+
+        snap debug paths
+
+        echo
         echo "==== native snapd package"
         echo
 

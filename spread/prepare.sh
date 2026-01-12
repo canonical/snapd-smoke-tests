@@ -15,6 +15,9 @@ snap version | tee snap-version.distro.debug
 
 case "$SPREAD_SYSTEM" in
 debian-cloud-sid)
+	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
+		apt remove --purge -y snapd
+	fi
 	# If requested, download a custom build of snapd from salsa.debian.org
 	# artifact page. An example job is https://salsa.debian.org/debian/snapd/-/jobs/7311035/
 	# from pipeline https://salsa.debian.org/debian/snapd/-/pipelines/838704
@@ -50,11 +53,16 @@ oracle-* | almalinux-* | rocky-* | fedora-* | centos-*)
 	# If requested, download and install a custom build of snapd from the
 	# Fedora update system, Bodhi.
 	if [ -n "$X_SPREAD_BODHI_ADVISORY_ID" ]; then
+		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
+			dnf remove -y snapd
+		fi
 		dnf upgrade --refresh --advisory="$X_SPREAD_BODHI_ADVISORY_ID"
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.bodhi.debug
-	fi
-	if [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
+	elif [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
+		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
+			dnf remove -y snapd
+		fi
 		X_SPREAD_LOCAL_SNAP_CONFINE_PKG="${X_SPREAD_LOCAL_SNAPD_PKG/snapd/snap-confine}"
 		X_SPREAD_LOCAL_SNAPD_SELINUX_PKG="${X_SPREAD_LOCAL_SNAPD_PKG/snapd/snapd-selinux}"
 		X_SPREAD_LOCAL_SNAPD_SELINUX_PKG="${X_SPREAD_LOCAL_SNAPD_SELINUX_PKG/%x86_64.rpm/noarch.rpm}"
@@ -68,6 +76,9 @@ oracle-* | almalinux-* | rocky-* | fedora-* | centos-*)
 	;;
 archlinux-*)
 	if [ -n "$X_SPREAD_ARCH_SNAPD_PR" ]; then
+		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
+			pacman -Rnsc --noconfirm snapd
+		fi
 		rm -rf /var/tmp/snapd
 		upstream_repo="${X_SPREAD_ARCH_SNAPD_PR%/pull/*}"
 		pr_num="$(basename "$X_SPREAD_ARCH_SNAPD_PR")"
@@ -86,6 +97,9 @@ archlinux-*)
 	;;
 opensuse-*)
 	if [ -n "$X_SPREAD_OPENSUSE_OBS_PROJECT" ]; then
+		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
+			zypper rm -y snapd
+		fi
 		# eg. home:maciek_borzecki:branches:system:snappy
 		# the repo path is: https://download.opensuse.org/repositories/home:/maciek_borzecki:/branches:/system:/snappy/<opensuse-version>
 		# e.g: https://download.opensuse.org/repositories/home:/maciek_borzecki:/branches:/system:/snappy/openSUSE_Tumbleweed
@@ -105,6 +119,16 @@ opensuse-*)
 	;;
 amazonlinux-*)
 	if [ -n "$X_SPREAD_AMAZON_REPO_FILE" ]; then
+		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
+			case "$SPREAD_SYSTEM" in
+			amazonlinux-cloud-2023*)
+				dnf remove -y snapd
+				;;
+			*)
+				yum remove -y snapd
+				;;
+			esac
+		fi
 		rm -v /etc/yum.repos.d/snapd.repo
 		# this contains a directory named repo containing snapd.repo file
 		tar xvf "$X_SPREAD_AMAZON_REPO_FILE"

@@ -68,6 +68,11 @@ on:
                 type: string
                 default: "latest/edge"
                 required: true
+            clean-install:
+                description: "Perform a clean install of tested CI version"
+                type: boolean
+                default: false
+
 jobs:
     spread:
         runs-on: ubuntu-latest
@@ -92,6 +97,7 @@ jobs:
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_ARCH_SNAPD_PR="${{ inputs.arch-repo-pr || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_ARCH_SNAPD_REPO_SUBDIR="${{ inputs.arch-repo-subdir || '' }}" >> $GITHUB_ENV
+                echo X_SPREAD_CI_MODE_CLEAN_INSTALL="${{ inputs.clean-install || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
               uses: zyga/image-garden-action@329568e2f2125fe231b3b7b8eb9a49a3468ff66a
               with:

@@ -11,6 +11,12 @@ execute: |
         cat /etc/os-release
 
         echo
+        echo "==== spread overrides"
+        echo
+
+        env | sort | grep X_SPREAD || true
+
+        echo
         echo "==== snapd"
         echo
 

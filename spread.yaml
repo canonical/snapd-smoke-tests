@@ -128,6 +128,11 @@ environment:
     X_SPREAD_ARCH_SNAPD_PR: '$(HOST: echo "${X_SPREAD_ARCH_SNAPD_PR:-}")'
     X_SPREAD_ARCH_SNAPD_REPO_SUBDIR: '$(HOST: echo "${X_SPREAD_ARCH_SNAPD_REPO_SUBDIR:-}")'
     X_SPREAD_OPENSUSE_OBS_PROJECT: '$(HOST: echo "${X_SPREAD_OPENSUSE_OBS_PROJECT:-}")'
+    # If different than 'default' (package default) then force one of the
+    # supported mount directories on openSUSE, possible choices are:
+    # - /snap
+    # - /var/lib/snapd/snap
+    X_SPREAD_OPENSUSE_MOUNT_DIR: '$(HOST: echo "${X_SPREAD_OPENSUSE_MOUNT_DIR:-default}")'
     X_SPREAD_AMAZON_REPO_FILE: '$(HOST: echo "${X_SPREAD_AMAZON_REPO_FILE:-}")'
     X_SPREAD_LOCAL_SNAPD_PKG: '$(HOST: echo "${X_SPREAD_LOCAL_SNAPD_PKG:-}")'
     # set to true to indicate a mode in which the initial snapd package is

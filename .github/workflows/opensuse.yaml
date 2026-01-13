@@ -76,6 +76,14 @@ on:
                 description: "Perform a clean install of tested CI version"
                 type: boolean
                 default: false
+            opensuse-snap-mount-dir:
+                description: "Snap mount directory"
+                type: choice
+                options:
+                    - default
+                    - /snap
+                    - /var/lib/snapd/snap
+                default: /snap
 
 jobs:
     spread:
@@ -100,6 +108,7 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_OPENSUSE_OBS_PROJECT="${{ inputs.opensuse-obs-project || '' }}" >> $GITHUB_ENV
+                echo X_SPREAD_OPENSUSE_MOUNT_DIR="${{ inputs.opensuse-snap-mount-dir || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_CI_MODE_CLEAN_INSTALL="${{ inputs.clean-install || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
               uses: zyga/image-garden-action@329568e2f2125fe231b3b7b8eb9a49a3468ff66a

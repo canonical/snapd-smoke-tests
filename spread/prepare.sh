@@ -11,6 +11,18 @@ if [ -f /etc/os-release ]; then
 fi
 
 case "$SPREAD_SYSTEM" in
+ubuntu-cloud-*)
+	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
+		apt remove --purge -y snapd
+	fi
+	if [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
+		apt install -y "$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAPD_PKG"
+		# Show the version of classically updated snapd.
+		snap version | tee snap-version.local.debug
+	elif [ ! -x /usr/bin/snap ]; then
+		apt install -y snapd
+	fi
+	;;
 debian-cloud-*)
 	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
 		apt remove --purge -y snapd

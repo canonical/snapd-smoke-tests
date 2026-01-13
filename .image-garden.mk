@@ -26,6 +26,8 @@ $(snapd_suspend_workaround)
 - systemctl enable --now apparmor.service
 # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
 - echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
+package_update: true
+package_upgrade: true
 packages:
 - apparmor
 - curl
@@ -43,6 +45,8 @@ $(snapd_suspend_workaround)
 - systemctl enable --now snapd.socket
 # Amazon 2 does not implement the power_state cloud-init plugin.
 - shutdown --poweroff now
+package_update: true
+package_upgrade: true
 packages:
 # Curl is pre-installed but only in the "minimal" version.
 # Installing curl via cloud-init fails as it conflicts with curl-minimal
@@ -61,6 +65,8 @@ $(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
 $(snapd_suspend_workaround)
 # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
 - echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
+package_update: true
+package_upgrade: true
 packages:
 # Curl is pre-installed but only in the "minimal" version.
 # Installing curl via cloud-init fails as it conflicts with curl-minimal
@@ -80,6 +86,8 @@ $(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
 $(snapd_suspend_workaround)
 # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
 - echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
+package_update: true
+package_upgrade: true
 packages:
 - curl
 - jq
@@ -96,6 +104,8 @@ $(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
 $(snapd_suspend_workaround)
 # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
 - echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
+package_update: true
+package_upgrade: true
 packages:
 - curl
 - jq
@@ -107,6 +117,8 @@ $(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
 $(snapd_suspend_workaround)
 # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
 - echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
+package_update: true
+package_upgrade: true
 packages:
 - curl
 - jq
@@ -124,6 +136,8 @@ $(snapd_suspend_workaround)
 # Add the system:snappy repository and install snapd
 - zypper addrepo --refresh https://download.opensuse.org/repositories/system:/snappy/openSUSE_Tumbleweed snappy
 - zypper --gpg-auto-import-keys refresh
+package_update: true
+package_upgrade: true
 packages:
 - curl
 - jq
@@ -137,6 +151,8 @@ $(snapd_suspend_workaround)
 # Add the system:snappy repository and install snapd
 - zypper addrepo --refresh https://download.opensuse.org/repositories/system:/snappy/openSUSE_Tumbleweed snappy
 - zypper --gpg-auto-import-keys refresh
+package_update: true
+package_upgrade: true
 packages:
 - curl
 - jq
@@ -161,6 +177,8 @@ $(snapd_suspend_workaround)
     if snap list snapd | grep -q snapd; then
         snap remove --purge snapd
     fi
+package_update: true
+package_upgrade: true
 packages:
 - curl
 - jq

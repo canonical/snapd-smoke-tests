@@ -130,6 +130,9 @@ environment:
     X_SPREAD_OPENSUSE_OBS_PROJECT: '$(HOST: echo "${X_SPREAD_OPENSUSE_OBS_PROJECT:-}")'
     X_SPREAD_AMAZON_REPO_FILE: '$(HOST: echo "${X_SPREAD_AMAZON_REPO_FILE:-}")'
     X_SPREAD_LOCAL_SNAPD_PKG: '$(HOST: echo "${X_SPREAD_LOCAL_SNAPD_PKG:-}")'
+    # set to true to indicate a mode in which the initial snapd package is
+    # removed before installing the version used for CI testing
+    X_SPREAD_CI_MODE_CLEAN_INSTALL: '$(HOST: echo "${X_SPREAD_CI_MODE_CLEAN_INSTALL:-}")'
 exclude:
     - .image-garden
     - .git

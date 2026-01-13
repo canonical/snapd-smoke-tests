@@ -11,6 +11,12 @@ execute: |
         cat /etc/os-release
 
         echo
+        echo "==== spread overrides"
+        echo
+
+        env | sort | grep X_SPREAD || true
+
+        echo
         echo "==== snapd"
         echo
 
@@ -33,6 +39,12 @@ execute: |
 
         snap debug execution snap
         snap debug execution apparmor
+
+        echo
+        echo "===== paths"
+        echo
+
+        snap debug paths
 
         echo
         echo "==== native snapd package"

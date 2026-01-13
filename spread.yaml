@@ -112,8 +112,8 @@ backends:
         type: adhoc
 debug: |
     cat *.debug || true
-    snap list
-    snap changes
+    snap list || true
+    snap changes || true
 environment:
     PATH: /root/snapd-smoke-tests/bin:$PATH
     X_SPREAD_CACHE_DIR: /mnt/cache

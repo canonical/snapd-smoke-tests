@@ -10,12 +10,21 @@ if [ -f /etc/os-release ]; then
 	tee os-release.debug </etc/os-release
 fi
 
-# Show the version of classically packaged snapd.
-snap version | tee snap-version.distro.debug
-
 case "$SPREAD_SYSTEM" in
-debian-cloud-sid)
-	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
+ubuntu-cloud-*)
+	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ] && [ -x /usr/bin/snap ]; then
+		apt remove --purge -y snapd
+	fi
+	if [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
+		apt install -y "$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAPD_PKG"
+		# Show the version of classically updated snapd.
+		snap version | tee snap-version.local.debug
+	elif [ ! -x /usr/bin/snap ]; then
+		apt install -y snapd
+	fi
+	;;
+debian-cloud-*)
+	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ] && [ -x /usr/bin/snap ]; then
 		apt remove --purge -y snapd
 	fi
 	# If requested, download a custom build of snapd from salsa.debian.org
@@ -42,27 +51,25 @@ debian-cloud-sid)
 		rm -rf /var/tmp/snapd.salsa
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.salsa.debug
-	fi
-	if [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
+	elif [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
 		apt install -y "$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAPD_PKG"
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.local.debug
+	elif [ ! -x /usr/bin/snap ]; then
+		apt install -y snapd
 	fi
 	;;
 oracle-* | almalinux-* | rocky-* | fedora-* | centos-*)
+	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ] && [ -x /usr/bin/snap ]; then
+		dnf remove -y snapd
+	fi
 	# If requested, download and install a custom build of snapd from the
 	# Fedora update system, Bodhi.
 	if [ -n "$X_SPREAD_BODHI_ADVISORY_ID" ]; then
-		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
-			dnf remove -y snapd
-		fi
 		dnf upgrade --refresh --advisory="$X_SPREAD_BODHI_ADVISORY_ID"
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.bodhi.debug
 	elif [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
-		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
-			dnf remove -y snapd
-		fi
 		X_SPREAD_LOCAL_SNAP_CONFINE_PKG="${X_SPREAD_LOCAL_SNAPD_PKG/snapd/snap-confine}"
 		X_SPREAD_LOCAL_SNAPD_SELINUX_PKG="${X_SPREAD_LOCAL_SNAPD_PKG/snapd/snapd-selinux}"
 		X_SPREAD_LOCAL_SNAPD_SELINUX_PKG="${X_SPREAD_LOCAL_SNAPD_SELINUX_PKG/%x86_64.rpm/noarch.rpm}"
@@ -72,13 +79,18 @@ oracle-* | almalinux-* | rocky-* | fedora-* | centos-*)
 			"$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAPD_SELINUX_PKG"
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.local.debug
+	elif [ ! -x /usr/bin/snap ]; then
+		# snapd is in Fedora repository, for others epel-release is installed by
+		# image-garden
+		dnf install -y snapd
+		systemctl enable --now snapd.socket
 	fi
 	;;
 archlinux-*)
+	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ] && [ -x /usr/bin/snap ]; then
+		pacman -Rnsc --noconfirm snapd
+	fi
 	if [ -n "$X_SPREAD_ARCH_SNAPD_PR" ]; then
-		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
-			pacman -Rnsc --noconfirm snapd
-		fi
 		rm -rf /var/tmp/snapd
 		upstream_repo="${X_SPREAD_ARCH_SNAPD_PR%/pull/*}"
 		pr_num="$(basename "$X_SPREAD_ARCH_SNAPD_PR")"
@@ -93,13 +105,19 @@ archlinux-*)
 		)
 		systemctl enable --now snapd.socket
 		systemctl enable --now snapd.apparmor.service
+	elif [ ! -x /usr/bin/snap ]; then
+		# We cannot build the package as root so switch to the archlinux user.
+		sudo -u archlinux git clone https://aur.archlinux.org/snapd.git /var/tmp/snapd
+		cd /var/tmp/snapd && sudo -u archlinux makepkg -si --noconfirm
+		systemctl enable --now snapd.socket
+		systemctl enable --now snapd.apparmor.service
 	fi
 	;;
 opensuse-*)
+	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ] && [ -x /usr/bin/snap ]; then
+		zypper rm -y snapd
+	fi
 	if [ -n "$X_SPREAD_OPENSUSE_OBS_PROJECT" ]; then
-		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
-			zypper rm -y snapd
-		fi
 		# eg. home:maciek_borzecki:branches:system:snappy
 		# the repo path is: https://download.opensuse.org/repositories/home:/maciek_borzecki:/branches:/system:/snappy/<opensuse-version>
 		# e.g: https://download.opensuse.org/repositories/home:/maciek_borzecki:/branches:/system:/snappy/openSUSE_Tumbleweed
@@ -115,20 +133,28 @@ opensuse-*)
 		if aa-enabled; then
 			systemctl enable --now snapd.apparmor.service
 		fi
+	elif [ ! -x /usr/bin/snap ]; then
+		# repository called 'snappy' is added by image-garden
+		zypper dup --from snappy
+		zypper install -y snapd
+		systemctl enable --now snapd.socket
+		if aa-enabled; then
+			systemctl enable --now snapd.apparmor.service
+		fi
 	fi
 	;;
 amazonlinux-*)
+	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ] && [ -x /usr/bin/snap ]; then
+		case "$SPREAD_SYSTEM" in
+		amazonlinux-cloud-2023*)
+			dnf remove -y snapd
+			;;
+		*)
+			yum remove -y snapd
+			;;
+		esac
+	fi
 	if [ -n "$X_SPREAD_AMAZON_REPO_FILE" ]; then
-		if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
-			case "$SPREAD_SYSTEM" in
-			amazonlinux-cloud-2023*)
-				dnf remove -y snapd
-				;;
-			*)
-				yum remove -y snapd
-				;;
-			esac
-		fi
 		rm -v /etc/yum.repos.d/snapd.repo
 		# this contains a directory named repo containing snapd.repo file
 		tar xvf "$X_SPREAD_AMAZON_REPO_FILE"
@@ -139,14 +165,30 @@ amazonlinux-*)
 		case "$SPREAD_SYSTEM" in
 		amazonlinux-cloud-2023*)
 			dnf distro-sync -y
+			dnf install -y snapd
 			;;
 		*)
 			yum distro-sync -y
+			dnf install -y snapd
+			;;
+		esac
+	elif [ ! -x /usr/bin/snap ]; then
+		# repository is added by image-garden setup
+		case "$SPREAD_SYSTEM" in
+		amazonlinux-cloud-2023*)
+			dnf install -y snapd
+			;;
+		*)
+			yum install -y snapd
 			;;
 		esac
 	fi
+	systemctl enable --now snapd.socket
 	;;
 esac
+
+# Show the version of classically packaged snapd.
+snap version | tee snap-version.distro.debug
 
 # Show the list of pre-installed snaps.
 snap list | tee snap-list-preinstalled.debug

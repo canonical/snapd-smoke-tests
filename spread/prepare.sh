@@ -10,9 +10,6 @@ if [ -f /etc/os-release ]; then
 	tee os-release.debug </etc/os-release
 fi
 
-# Show the version of classically packaged snapd.
-snap version | tee snap-version.distro.debug
-
 case "$SPREAD_SYSTEM" in
 debian-cloud-sid)
 	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
@@ -42,11 +39,12 @@ debian-cloud-sid)
 		rm -rf /var/tmp/snapd.salsa
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.salsa.debug
-	fi
-	if [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
+	elif [ -n "${X_SPREAD_LOCAL_SNAPD_PKG:-}" ]; then
 		apt install -y "$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAPD_PKG"
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.local.debug
+	elif [ ! -x /usr/bin/snap ]; then
+		apt install -y snapd
 	fi
 	;;
 oracle-* | almalinux-* | rocky-* | fedora-* | centos-*)
@@ -72,6 +70,11 @@ oracle-* | almalinux-* | rocky-* | fedora-* | centos-*)
 			"$SPREAD_PATH"/incoming/"$X_SPREAD_LOCAL_SNAPD_SELINUX_PKG"
 		# Show the version of classically updated snapd.
 		snap version | tee snap-version.local.debug
+	elif [ ! -x /usr/bin/snap ]; then
+		# snapd is in Fedora repository, for others epel-release is installed by
+		# image-garden
+		dnf install -y snapd
+		systemctl enable --now snapd.socket
 	fi
 	;;
 archlinux-*)
@@ -93,6 +96,12 @@ archlinux-*)
 		)
 		systemctl enable --now snapd.socket
 		systemctl enable --now snapd.apparmor.service
+	elif [ ! -x /usr/bin/snap ]; then
+		# We cannot build the package as root so switch to the archlinux user.
+		sudo -u archlinux git clone https://aur.archlinux.org/snapd.git /var/tmp/snapd
+		cd /var/tmp/snapd && sudo -u archlinux makepkg -si --noconfirm
+		systemctl enable --now snapd.socket
+		systemctl enable --now snapd.apparmor.service
 	fi
 	;;
 opensuse-*)
@@ -111,6 +120,14 @@ opensuse-*)
 		# needs --allow-vendor-change to change the package vendor from default
 		# system:snappy to one corresponding to the provided project
 		zypper in --allow-vendor-change --from test-snappy -y snapd
+		systemctl enable --now snapd.socket
+		if aa-enabled; then
+			systemctl enable --now snapd.apparmor.service
+		fi
+	elif [ ! -x /usr/bin/snap ]; then
+		# repository called 'snappy' is added by image-garden
+		zypper dup --from snappy
+		zypper install -y snapd
 		systemctl enable --now snapd.socket
 		if aa-enabled; then
 			systemctl enable --now snapd.apparmor.service
@@ -144,9 +161,22 @@ amazonlinux-*)
 			yum distro-sync -y
 			;;
 		esac
+	elif [ ! -x /usr/bin/snap ]; then
+		# repository is added by image-garden setup
+		case "$SPREAD_SYSTEM" in
+		amazonlinux-cloud-2023*)
+			dnf install -y snapd
+			;;
+		*)
+			yum install -y snapd
+			;;
+		esac
 	fi
 	;;
 esac
+
+# Show the version of classically packaged snapd.
+snap version | tee snap-version.distro.debug
 
 # Show the list of pre-installed snaps.
 snap list | tee snap-list-preinstalled.debug

@@ -11,7 +11,7 @@ if [ -f /etc/os-release ]; then
 fi
 
 case "$SPREAD_SYSTEM" in
-debian-cloud-sid)
+debian-cloud-*)
 	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ]; then
 		apt remove --purge -y snapd
 	fi

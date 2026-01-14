@@ -142,6 +142,22 @@ opensuse-*)
 			systemctl enable --now snapd.apparmor.service
 		fi
 	fi
+	if [ "$X_SPREAD_OPENSUSE_MOUNT_DIR" != "default" ]; then
+		path="$(
+			eval "$(snap debug paths)"
+			echo "$SNAPD_MOUNT"
+		)"
+		if [ "$path" != "$X_SPREAD_OPENSUSE_MOUNT_DIR" ]; then
+			systemctl stop snapd
+			rm -rfv "$path"
+			mkdir -v -p "$X_SPREAD_OPENSUSE_MOUNT_DIR"
+			nowpath="$(
+				eval "$(snap debug paths)"
+				echo "$SNAPD_MOUNT"
+			)"
+			test "$nowpath" = "$X_SPREAD_OPENSUSE_MOUNT_DIR"
+		fi
+	fi
 	;;
 amazonlinux-*)
 	if [ "$X_SPREAD_CI_MODE_CLEAN_INSTALL" = "true" ] && [ -x /usr/bin/snap ]; then

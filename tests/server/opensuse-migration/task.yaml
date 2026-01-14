@@ -1,0 +1,34 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Canonical Ltd.
+prepare: |
+    snap-install hello
+restore: |
+    snap remove --purge hello
+summary: Verify migration of snap mount directory on openSUSE
+systems:
+    - opensuse-cloud-tumbleweed-*
+skip:
+    - reason: "Use of /var/lib/snapd/snap through X_SPREAD_OPENSUSE_MOUNT_DIR"
+      if: test "$X_SPREAD_OPENSUSE_MOUNT_DIR" = "/var/lib/snapd/snap"
+    - reason: "Using /var/lib/snapd/snap at runtime"
+      if: test -d /var/lib/snapd/snap
+    - reason: "Migration not supported by snap-mgmt"
+      if: /usr/libexec/snapd/snap-mgmt --help | NOMATCH -- '--migrate-mount-dir'
+execute: |
+    echo "Verify we're using /snap"
+    eval "$(snap debug paths)"
+    echo "$SNAPD_MOUNT" | MATCH '^/snap$'
+
+    systemctl stop snapd
+    /usr/libexec/snapd/snap-mgmt --migrate-mount-dir
+    systemctl start snapd.socket
+
+    echo "Verify migrated snap mount directory is /var/lib/snapd/snap"
+    eval "$(snap debug paths)"
+    echo "$SNAPD_MOUNT" | MATCH '^/var/lib/snapd/snap$'
+
+    # no snaps are broken
+    snap list | NOMATCH "broken"
+    # we can still run snaps
+    snap run hello | MATCH 'Hello, world!'
+

@@ -58,6 +58,22 @@ The script shows time spent in each test phase (Preparing, Executing, Restoring)
 and sorts tests by total time or by a specific phase. Tests with incomplete data
 (phases that didn't finish in the captured log) are marked with `*`.
 
+### Testing the analysis tool
+
+Unit tests for the `analyze-spread-logs` tool are available in `test_analyze_spread_logs.py`.
+These tests use sample spread logs to verify correct parsing and analysis, preventing
+regressions during refactoring.
+
+Run the tests with:
+
+```sh
+# Run tests directly
+python3 test_analyze_spread_logs.py
+
+# Or use make
+make test
+```
+
 ## Testing builds from https://salsa.debian.org/debian/snapd
 
 Grab the GitLab job ID for the "build" job of a pipeline that ran on

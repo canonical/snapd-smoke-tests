@@ -1,0 +1,315 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Canonical Ltd.
+"""
+Analyze spread test logs and report execution times for each test.
+
+This script parses spread log output and calculates the time spent in each phase
+(Preparing, Executing, Restoring) for each test, then displays a sorted summary.
+"""
+
+import re
+import sys
+from datetime import datetime
+from typing import Dict, List, Tuple, Optional
+from dataclasses import dataclass, field
+
+
+@dataclass
+class TestPhase:
+    """Represents a single phase of test execution."""
+    name: str
+    start_time: Optional[datetime] = None
+    end_time: Optional[datetime] = None
+    
+    @property
+    def duration(self) -> float:
+        """Return duration in seconds."""
+        if self.start_time and self.end_time:
+            return (self.end_time - self.start_time).total_seconds()
+        return 0.0
+
+
+@dataclass
+class TestExecution:
+    """Represents a complete test execution with all phases."""
+    test_name: str
+    system: str
+    phases: Dict[str, TestPhase] = field(default_factory=dict)
+    
+    @property
+    def total_duration(self) -> float:
+        """Return total duration across all phases in seconds."""
+        return sum(phase.duration for phase in self.phases.values())
+    
+    @property
+    def prepare_duration(self) -> float:
+        """Return time spent preparing in seconds."""
+        return self.phases.get('Preparing', TestPhase('Preparing')).duration
+    
+    @property
+    def execute_duration(self) -> float:
+        """Return time spent executing in seconds."""
+        return self.phases.get('Executing', TestPhase('Executing')).duration
+    
+    @property
+    def restore_duration(self) -> float:
+        """Return time spent restoring in seconds."""
+        return self.phases.get('Restoring', TestPhase('Restoring')).duration
+
+
+def parse_timestamp(line: str) -> Optional[datetime]:
+    """Extract and parse timestamp from a log line."""
+    match = re.match(r'^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})', line)
+    if match:
+        return datetime.strptime(match.group(1), '%Y-%m-%d %H:%M:%S')
+    return None
+
+
+def parse_log_line(line: str) -> Optional[Tuple[datetime, str, str, str]]:
+    """
+    Parse a spread log line and extract timestamp, phase, system, and test name.
+    
+    Returns: (timestamp, phase, system, test_name) or None
+    """
+    timestamp = parse_timestamp(line)
+    if not timestamp:
+        return None
+    
+    # Match lines like: "2026-01-13 11:15:15 Preparing garden:archlinux-cloud:tests/desktop/firefox (garden:archlinux-cloud)..."
+    # or: "2026-01-13 11:16:13 Executing garden:archlinux-cloud:tests/desktop/firefox (garden:archlinux-cloud) (2/19)..."
+    # Note: We specifically look for :tests/ to distinguish test phases from system preparation
+    pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+(Preparing|Executing|Restoring)\s+([^:]+):([^:]+):(tests/.*?)\s+\(([^)]+)\)'
+    match = re.match(pattern, line)
+    
+    if match:
+        phase = match.group(2)
+        backend = match.group(3)
+        system = match.group(4)
+        test_name = match.group(5)
+        
+        return (timestamp, phase, system, test_name)
+    
+    return None
+
+
+def analyze_logs(log_content: str) -> List[TestExecution]:
+    """
+    Analyze spread log content and extract test execution information.
+    
+    Args:
+        log_content: The content of the spread log file
+        
+    Returns:
+        List of TestExecution objects with timing information
+    """
+    tests: Dict[str, TestExecution] = {}
+    lines = log_content.strip().split('\n')
+    
+    # First pass: collect all log entries with their timestamps
+    log_entries = []
+    for line in lines:
+        parsed = parse_log_line(line)
+        if parsed:
+            log_entries.append(parsed)
+    
+    # Second pass: process entries and calculate durations
+    # Group entries by test to handle concurrent execution
+    test_phases_sequence: Dict[str, List[Tuple[datetime, str]]] = {}
+    
+    for timestamp, phase, system, test_name in log_entries:
+        test_key = f"{system}:{test_name}"
+        
+        if test_key not in test_phases_sequence:
+            test_phases_sequence[test_key] = []
+        
+        test_phases_sequence[test_key].append((timestamp, phase))
+    
+    # Third pass: calculate durations for each test
+    for test_key, phase_sequence in test_phases_sequence.items():
+        # Extract system and test_name from test_key
+        system, test_name = test_key.split(':', 1)
+        
+        test = TestExecution(test_name=test_name, system=system)
+        
+        # Process each phase in sequence
+        for i, (timestamp, phase) in enumerate(phase_sequence):
+            if phase not in test.phases:
+                test.phases[phase] = TestPhase(name=phase, start_time=timestamp)
+            
+            # Find the end time: next phase for this test
+            if i + 1 < len(phase_sequence):
+                next_timestamp, next_phase = phase_sequence[i + 1]
+                test.phases[phase].end_time = next_timestamp
+            # If this is the last phase, we can't determine end time from this log
+            # (it might still be running or completed after the log was captured)
+        
+        tests[test_key] = test
+    
+    return list(tests.values())
+
+
+def format_duration(seconds: float) -> str:
+    """Format duration in seconds to a human-readable string."""
+    if seconds < 60:
+        return f"{seconds:.1f}s"
+    elif seconds < 3600:
+        minutes = int(seconds // 60)
+        secs = seconds % 60
+        return f"{minutes}m {secs:.1f}s"
+    else:
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        secs = seconds % 60
+        return f"{hours}h {minutes}m {secs:.1f}s"
+
+
+def print_summary(tests: List[TestExecution], sort_by: str = 'total'):
+    """
+    Print a summary of test execution times.
+    
+    Args:
+        tests: List of TestExecution objects
+        sort_by: Sort key ('total', 'prepare', 'execute', 'restore')
+    """
+    if not tests:
+        print("No test execution data found in logs.")
+        return
+    
+    # Sort tests by the specified criterion
+    sort_key_map = {
+        'total': lambda t: t.total_duration,
+        'prepare': lambda t: t.prepare_duration,
+        'execute': lambda t: t.execute_duration,
+        'restore': lambda t: t.restore_duration,
+    }
+    
+    sort_key = sort_key_map.get(sort_by, sort_key_map['total'])
+    sorted_tests = sorted(tests, key=sort_key, reverse=True)
+    
+    # Calculate total time for completed phases only
+    total_time = sum(test.total_duration for test in tests)
+    
+    # Count incomplete tests
+    incomplete_tests = sum(1 for test in tests 
+                          if any(phase.end_time is None for phase in test.phases.values()))
+    
+    # Print header
+    print("=" * 110)
+    print("Spread Test Execution Time Analysis")
+    print("=" * 110)
+    print(f"\nTotal tests analyzed: {len(tests)}")
+    if incomplete_tests > 0:
+        print(f"Incomplete tests (missing end times): {incomplete_tests}")
+    print(f"Total execution time (completed phases): {format_duration(total_time)}")
+    print(f"\nSorted by: {sort_by} time (descending)\n")
+    
+    # Print table header
+    print(f"{'Test Name':<50} {'System':<20} {'Prepare':>12} {'Execute':>12} {'Restore':>12} {'Total':>12}")
+    print("-" * 110)
+    
+    # Print test data
+    for test in sorted_tests:
+        test_display = test.test_name[:47] + "..." if len(test.test_name) > 50 else test.test_name
+        system_display = test.system[:17] + "..." if len(test.system) > 20 else test.system
+        
+        # Format phase durations, marking incomplete with * and missing with -
+        prepare_str = "-"
+        if 'Preparing' in test.phases:
+            prepare_str = format_duration(test.prepare_duration)
+            if test.phases['Preparing'].end_time is None:
+                prepare_str += "*"
+            
+        execute_str = "-"
+        if 'Executing' in test.phases:
+            execute_str = format_duration(test.execute_duration)
+            if test.phases['Executing'].end_time is None:
+                execute_str += "*"
+            
+        restore_str = "-"
+        if 'Restoring' in test.phases:
+            restore_str = format_duration(test.restore_duration)
+            if test.phases['Restoring'].end_time is None:
+                restore_str += "*"
+        
+        total_str = format_duration(test.total_duration)
+        # Mark total as incomplete if any phase is incomplete
+        if any(phase.end_time is None for phase in test.phases.values()):
+            total_str += "*"
+        
+        print(f"{test_display:<50} {system_display:<20} "
+              f"{prepare_str:>12} "
+              f"{execute_str:>12} "
+              f"{restore_str:>12} "
+              f"{total_str:>12}")
+    
+    print("-" * 110)
+    print(f"{'TOTAL (completed phases)':<70} {'':<12} {'':<12} {'':<12} {format_duration(total_time):>12}")
+    if incomplete_tests > 0:
+        print("\n* = Phase incomplete (no end time in log)")
+        print("- = Phase not started or not logged")
+    print()
+
+
+def main():
+    """Main entry point."""
+    import argparse
+    
+    parser = argparse.ArgumentParser(
+        description='Analyze spread test logs and report execution times.',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Analyze a single log file
+  analyze-spread-logs spread.log
+
+  # Analyze log from stdin
+  spread -v ubuntu-cloud-24.04 | analyze-spread-logs
+
+  # Sort by execution time only
+  analyze-spread-logs spread.log --sort-by execute
+
+  # Analyze multiple log files
+  cat spread-logs/*.log | analyze-spread-logs
+        """
+    )
+    
+    parser.add_argument(
+        'logfile',
+        nargs='?',
+        default='-',
+        help='Path to spread log file (default: stdin)'
+    )
+    
+    parser.add_argument(
+        '--sort-by',
+        choices=['total', 'prepare', 'execute', 'restore'],
+        default='total',
+        help='Sort tests by phase time (default: total)'
+    )
+    
+    args = parser.parse_args()
+    
+    # Read log content
+    if args.logfile == '-':
+        log_content = sys.stdin.read()
+    else:
+        try:
+            with open(args.logfile, 'r') as f:
+                log_content = f.read()
+        except FileNotFoundError:
+            print(f"Error: Log file '{args.logfile}' not found.", file=sys.stderr)
+            sys.exit(1)
+        except IOError as e:
+            print(f"Error reading log file: {e}", file=sys.stderr)
+            sys.exit(1)
+    
+    # Analyze logs
+    tests = analyze_logs(log_content)
+    
+    # Print summary
+    print_summary(tests, sort_by=args.sort_by)
+
+
+if __name__ == '__main__':
+    main()

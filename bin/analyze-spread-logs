@@ -83,16 +83,16 @@ def parse_log_line(line: str) -> Optional[Tuple[datetime, str, str, str]]:
     # Pattern breakdown:
     # Group 1: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) - timestamp (already extracted above, but included in pattern)
     # Group 2: (Preparing|Executing|Restoring) - phase name
-    # Group 3: ([^:]+) - backend (e.g., "garden")
+    # Group 3: ([^:]+) - backend (e.g., "garden") - not currently used but available for future enhancements
     # Group 4: ([^:]+) - system name (e.g., "archlinux-cloud")
     # Group 5: (tests/.*?) - test path (e.g., "tests/desktop/firefox" or "tests/server/maas:3_6")
-    # Group 6: \(([^)]+)\) - system identifier in parentheses
+    # Group 6: \(([^)]+)\) - system identifier in parentheses - not currently used
     pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+(Preparing|Executing|Restoring)\s+([^:]+):([^:]+):(tests/.*?)\s+\(([^)]+)\)'
     match = re.match(pattern, line)
     
     if match:
         phase = match.group(2)
-        backend = match.group(3)
+        # backend = match.group(3)  # Not currently used
         system = match.group(4)
         test_name = match.group(5)
         
@@ -123,6 +123,8 @@ def analyze_logs(log_content: str) -> List[TestExecution]:
     
     # Second pass: process entries and calculate durations
     # Group entries by test to handle concurrent execution
+    # Note: If a test is retried (same phase appears multiple times), only the last occurrence
+    # will be recorded. This is acceptable for typical smoke test runs where tests run once.
     test_phases_sequence: Dict[str, List[Tuple[datetime, str]]] = {}
     
     for timestamp, phase, system, test_name in log_entries:
@@ -148,6 +150,10 @@ def analyze_logs(log_content: str) -> List[TestExecution]:
         test = TestExecution(test_name=test_name, system=system)
         
         # Process each phase in sequence
+        # Note: If the same phase appears multiple times (e.g., due to retries), the first
+        # start time and last end time will be used, which may not accurately reflect the
+        # actual execution time. For typical smoke tests where each phase runs once per test,
+        # this is not an issue.
         for i, (timestamp, phase) in enumerate(phase_sequence):
             if phase not in test.phases:
                 test.phases[phase] = TestPhase(name=phase, start_time=timestamp)

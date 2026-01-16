@@ -118,3 +118,18 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ inputs.opensuse-variant }}
+            - name: Analyze test execution times
+              if: always()
+              run: |
+                if [ -d artifacts ]; then
+                  echo "## Test Execution Time Analysis" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  # Run analysis and save to file, displaying output
+                  if find artifacts -name "spread.log" -exec cat {} \; | ./bin/analyze-spread-logs | tee artifacts/test-times-${{ inputs.opensuse-variant }}.txt; then
+                    :  # Success - output already captured
+                  else
+                    echo "No test execution data found"
+                  fi
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                fi

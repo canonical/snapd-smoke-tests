@@ -125,9 +125,7 @@ jobs:
                   echo "## Test Execution Time Analysis" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo '```' >> $GITHUB_STEP_SUMMARY
-                  find artifacts -name "spread.log" -exec cat {} \; | ./bin/analyze-spread-logs || echo "No test execution data found"
+                  # Run analysis once and save to file, then display it
+                  find artifacts -name "spread.log" -exec cat {} \; | ./bin/analyze-spread-logs | tee artifacts/test-times-${{ inputs.opensuse-variant }}.txt || echo "No test execution data found"
                   echo '```' >> $GITHUB_STEP_SUMMARY
-                  
-                  # Also save the analysis to a file
-                  find artifacts -name "spread.log" -exec cat {} \; | ./bin/analyze-spread-logs > artifacts/test-times-${{ inputs.opensuse-variant }}.txt || true
                 fi

@@ -32,6 +32,32 @@ To run tests locally install the `image-garden` snap and then run the
 you may need to use _edge_ channel for both snapd snap and image-garden until
 image-garden 0.4 and snapd 2.71 are released.
 
+## Analyzing test execution times
+
+The `bin/analyze-spread-logs` script can parse spread log output and report
+execution times for each test. This helps identify slow tests and understand
+where time is being spent during test runs.
+
+Usage examples:
+
+```sh
+# Analyze a single log file
+./bin/analyze-spread-logs spread.log
+
+# Analyze log from stdin
+spread -v ubuntu-cloud-24.04 | ./bin/analyze-spread-logs
+
+# Sort by execution time only
+./bin/analyze-spread-logs spread.log --sort-by execute
+
+# Analyze multiple log files
+cat spread-logs/*.log | ./bin/analyze-spread-logs
+```
+
+The script shows time spent in each test phase (Preparing, Executing, Restoring)
+and sorts tests by total time or by a specific phase. Tests with incomplete data
+(phases that didn't finish in the captured log) are marked with `*`.
+
 ## Testing builds from https://salsa.debian.org/debian/snapd
 
 Grab the GitLab job ID for the "build" job of a pipeline that ran on

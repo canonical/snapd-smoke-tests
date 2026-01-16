@@ -15,3 +15,6 @@
 .spread-reuse.*.yaml
 .spread-reuse.yaml
 spread-logs/*.log
+__pycache__/
+*.py[cod]
+*$py.class

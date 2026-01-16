@@ -71,7 +71,10 @@ Run the tests with:
 python3 test_analyze_spread_logs.py
 
 # Or use make
-make test
+make check-py
+
+# Tests also run as part of make check
+make check
 ```
 
 ## Testing builds from https://salsa.debian.org/debian/snapd

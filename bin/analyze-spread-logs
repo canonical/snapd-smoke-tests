@@ -79,6 +79,14 @@ def parse_log_line(line: str) -> Optional[Tuple[datetime, str, str, str]]:
     # Match lines like: "2026-01-13 11:15:15 Preparing garden:archlinux-cloud:tests/desktop/firefox (garden:archlinux-cloud)..."
     # or: "2026-01-13 11:16:13 Executing garden:archlinux-cloud:tests/desktop/firefox (garden:archlinux-cloud) (2/19)..."
     # Note: We specifically look for :tests/ to distinguish test phases from system preparation
+    #
+    # Pattern breakdown:
+    # Group 1: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) - timestamp (already extracted above, but included in pattern)
+    # Group 2: (Preparing|Executing|Restoring) - phase name
+    # Group 3: ([^:]+) - backend (e.g., "garden")
+    # Group 4: ([^:]+) - system name (e.g., "archlinux-cloud")
+    # Group 5: (tests/.*?) - test path (e.g., "tests/desktop/firefox" or "tests/server/maas:3_6")
+    # Group 6: \(([^)]+)\) - system identifier in parentheses
     pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+(Preparing|Executing|Restoring)\s+([^:]+):([^:]+):(tests/.*?)\s+\(([^)]+)\)'
     match = re.match(pattern, line)
     
@@ -128,7 +136,14 @@ def analyze_logs(log_content: str) -> List[TestExecution]:
     # Third pass: calculate durations for each test
     for test_key, phase_sequence in test_phases_sequence.items():
         # Extract system and test_name from test_key
-        system, test_name = test_key.split(':', 1)
+        # test_key format is "system:test_name" where test_name may contain colons
+        # (e.g., "archlinux-cloud:tests/server/maas:3_6")
+        # Split only on the first colon
+        parts = test_key.split(':', 1)
+        if len(parts) != 2:
+            # Skip malformed test keys
+            continue
+        system, test_name = parts
         
         test = TestExecution(test_name=test_name, system=system)
         

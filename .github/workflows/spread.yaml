@@ -78,7 +78,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               # This is essential for git restore-mtime to work correctly.
               with:
                 fetch-depth: 0
@@ -134,7 +134,7 @@ jobs:
                     - ubuntu-cloud-25.10
         steps:
             - name: Checkout code
-              uses: actions/checkout@v5
+              uses: actions/checkout@v6
               # This is essential for git restore-mtime to work correctly.
               with:
                 fetch-depth: 0

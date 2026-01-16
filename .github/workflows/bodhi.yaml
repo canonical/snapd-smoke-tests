@@ -118,7 +118,11 @@ jobs:
                   echo "## Test Execution Time Analysis" >> $GITHUB_STEP_SUMMARY
                   echo "" >> $GITHUB_STEP_SUMMARY
                   echo '```' >> $GITHUB_STEP_SUMMARY
-                  # Run analysis once and save to file, then display it
-                  find artifacts -name "spread.log" -exec cat {} \; | ./bin/analyze-spread-logs | tee artifacts/test-times-${{ inputs.garden-system }}.txt || echo "No test execution data found"
+                  # Run analysis and save to file, displaying output
+                  if find artifacts -name "spread.log" -exec cat {} \; | ./bin/analyze-spread-logs | tee artifacts/test-times-${{ inputs.garden-system }}.txt; then
+                    :  # Success - output already captured
+                  else
+                    echo "No test execution data found"
+                  fi
                   echo '```' >> $GITHUB_STEP_SUMMARY
                 fi

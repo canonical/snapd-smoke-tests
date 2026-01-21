@@ -92,6 +92,17 @@ class TestParseLogLine(unittest.TestCase):
         self.assertEqual(system, "archlinux-cloud")
         self.assertEqual(test_name, "tests/desktop/firefox")
     
+    def test_parse_debugging_phase(self):
+        """Test parsing a Debugging phase log line."""
+        line = "2026-01-13 11:16:15 Debugging garden:archlinux-cloud:tests/desktop/firefox (garden:archlinux-cloud)..."
+        result = analyze_module.parse_log_line(line)
+        self.assertIsNotNone(result)
+        timestamp, phase, system, test_name = result
+        self.assertEqual(timestamp, datetime(2026, 1, 13, 11, 16, 15))
+        self.assertEqual(phase, "Debugging")
+        self.assertEqual(system, "archlinux-cloud")
+        self.assertEqual(test_name, "tests/desktop/firefox")
+    
     def test_parse_test_with_colon_in_name(self):
         """Test parsing a test name that contains colons."""
         line = "2026-01-13 11:15:17 Preparing garden:archlinux-cloud:tests/server/maas:3_6 (garden:archlinux-cloud)..."
@@ -313,6 +324,11 @@ class TestTestExecution(unittest.TestCase):
         """Test restore_duration when phase doesn't exist."""
         test = analyze_module.TestExecution("tests/desktop/firefox", "archlinux-cloud")
         self.assertEqual(test.restore_duration, 0.0)
+    
+    def test_debug_duration_missing_phase(self):
+        """Test debug_duration when phase doesn't exist."""
+        test = analyze_module.TestExecution("tests/desktop/firefox", "archlinux-cloud")
+        self.assertEqual(test.debug_duration, 0.0)
 
 
 class TestPrintSummary(unittest.TestCase):
@@ -380,6 +396,65 @@ class TestConcurrentExecution(unittest.TestCase):
         
         # MAAS prepare: 11:15:17 to 11:16:01 = 44 seconds
         self.assertEqual(maas.prepare_duration, 44.0)
+
+
+class TestSequentialPhases(unittest.TestCase):
+    """Test that phases execute sequentially within a test."""
+    
+    def test_failed_test_with_debug_phase(self):
+        """Test a failed test that goes through all phases including Debugging."""
+        log = """2026-01-13 11:15:15 Preparing garden:archlinux-cloud:tests/desktop/broken (garden:archlinux-cloud)...
+2026-01-13 11:16:00 Executing garden:archlinux-cloud:tests/desktop/broken (garden:archlinux-cloud) (1/10)...
+2026-01-13 11:16:05 Restoring garden:archlinux-cloud:tests/desktop/broken (garden:archlinux-cloud)...
+2026-01-13 11:16:10 Debugging garden:archlinux-cloud:tests/desktop/broken (garden:archlinux-cloud)...
+2026-01-13 11:16:20 Preparing garden:archlinux-cloud:tests/desktop/broken (garden:archlinux-cloud)..."""
+        
+        tests = analyze_module.analyze_logs(log)
+        broken_test = tests[0]
+        
+        # Test should have all four phases
+        self.assertIn("Preparing", broken_test.phases)
+        self.assertIn("Executing", broken_test.phases)
+        self.assertIn("Restoring", broken_test.phases)
+        self.assertIn("Debugging", broken_test.phases)
+        
+        # Verify durations (phases execute sequentially within a test)
+        # Preparing: 11:15:15 to 11:16:00 = 45 seconds
+        self.assertEqual(broken_test.prepare_duration, 45.0)
+        
+        # Executing: 11:16:00 to 11:16:05 = 5 seconds
+        self.assertEqual(broken_test.execute_duration, 5.0)
+        
+        # Restoring: 11:16:05 to 11:16:10 = 5 seconds
+        self.assertEqual(broken_test.restore_duration, 5.0)
+        
+        # Debugging: 11:16:10 to 11:16:20 = 10 seconds (ends when same test repeats)
+        self.assertEqual(broken_test.debug_duration, 10.0)
+        
+        # Total: 45 + 5 + 5 + 10 = 65 seconds
+        self.assertEqual(broken_test.total_duration, 65.0)
+    
+    def test_successful_test_without_debug_phase(self):
+        """Test a successful test that does not have a Debugging phase."""
+        log = """2026-01-13 11:15:15 Preparing garden:archlinux-cloud:tests/desktop/good (garden:archlinux-cloud)...
+2026-01-13 11:16:00 Executing garden:archlinux-cloud:tests/desktop/good (garden:archlinux-cloud) (1/10)...
+2026-01-13 11:16:05 Restoring garden:archlinux-cloud:tests/desktop/good (garden:archlinux-cloud)...
+2026-01-13 11:16:10 Preparing garden:archlinux-cloud:tests/desktop/next (garden:archlinux-cloud)..."""
+        
+        tests = analyze_module.analyze_logs(log)
+        good_test = next(t for t in tests if t.test_name == "tests/desktop/good")
+        
+        # Test should have three phases (no Debugging)
+        self.assertIn("Preparing", good_test.phases)
+        self.assertIn("Executing", good_test.phases)
+        self.assertIn("Restoring", good_test.phases)
+        self.assertNotIn("Debugging", good_test.phases)
+        
+        # Debug duration should be 0
+        self.assertEqual(good_test.debug_duration, 0.0)
+        
+        # Total should not include debug
+        self.assertEqual(good_test.total_duration, 50.0)  # 45 + 5 + 0
 
 
 if __name__ == '__main__':

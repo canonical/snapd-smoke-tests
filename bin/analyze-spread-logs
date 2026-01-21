@@ -56,6 +56,11 @@ class TestExecution:
     def restore_duration(self) -> float:
         """Return time spent restoring in seconds."""
         return self.phases.get('Restoring', TestPhase('Restoring')).duration
+    
+    @property
+    def debug_duration(self) -> float:
+        """Return time spent debugging in seconds."""
+        return self.phases.get('Debugging', TestPhase('Debugging')).duration
 
 
 def parse_timestamp(line: str) -> Optional[datetime]:
@@ -80,14 +85,20 @@ def parse_log_line(line: str) -> Optional[Tuple[datetime, str, str, str]]:
     # or: "2026-01-13 11:16:13 Executing garden:archlinux-cloud:tests/desktop/firefox (garden:archlinux-cloud) (2/19)..."
     # Note: We specifically look for :tests/ to distinguish test phases from system preparation
     #
+    # Test phases execute sequentially in this order:
+    # 1. Preparing - setup phase
+    # 2. Executing - test execution
+    # 3. Restoring - cleanup phase
+    # 4. Debugging - only runs if test fails (optional)
+    #
     # Pattern breakdown:
     # Group 1: (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) - timestamp (already extracted above, but included in pattern)
-    # Group 2: (Preparing|Executing|Restoring) - phase name
+    # Group 2: (Preparing|Executing|Restoring|Debugging) - phase name (sequential phases)
     # Group 3: ([^:]+) - backend (e.g., "garden") - not currently used but available for future enhancements
     # Group 4: ([^:]+) - system name (e.g., "archlinux-cloud")
     # Group 5: (tests/.*?) - test path (e.g., "tests/desktop/firefox" or "tests/server/maas:3_6")
     # Group 6: \(([^)]+)\) - system identifier in parentheses - not currently used
-    pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+(Preparing|Executing|Restoring)\s+([^:]+):([^:]+):(tests/.*?)\s+\(([^)]+)\)'
+    pattern = r'(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s+(Preparing|Executing|Restoring|Debugging)\s+([^:]+):([^:]+):(tests/.*?)\s+\(([^)]+)\)'
     match = re.match(pattern, line)
     
     if match:
@@ -203,6 +214,7 @@ def print_summary(tests: List[TestExecution], sort_by: str = 'total'):
         'prepare': lambda t: t.prepare_duration,
         'execute': lambda t: t.execute_duration,
         'restore': lambda t: t.restore_duration,
+        'debug': lambda t: t.debug_duration,
     }
     
     sort_key = sort_key_map.get(sort_by, sort_key_map['total'])
@@ -216,9 +228,9 @@ def print_summary(tests: List[TestExecution], sort_by: str = 'total'):
                           if any(phase.end_time is None for phase in test.phases.values()))
     
     # Print header
-    print("=" * 110)
+    print("=" * 122)
     print("Spread Test Execution Time Analysis")
-    print("=" * 110)
+    print("=" * 122)
     print(f"\nTotal tests analyzed: {len(tests)}")
     if incomplete_tests > 0:
         print(f"Incomplete tests (missing end times): {incomplete_tests}")
@@ -226,8 +238,8 @@ def print_summary(tests: List[TestExecution], sort_by: str = 'total'):
     print(f"\nSorted by: {sort_by} time (descending)\n")
     
     # Print table header
-    print(f"{'Test Name':<50} {'System':<20} {'Prepare':>12} {'Execute':>12} {'Restore':>12} {'Total':>12}")
-    print("-" * 110)
+    print(f"{'Test Name':<50} {'System':<20} {'Prepare':>12} {'Execute':>12} {'Restore':>12} {'Debug':>12} {'Total':>12}")
+    print("-" * 122)
     
     # Print test data
     for test in sorted_tests:
@@ -253,6 +265,12 @@ def print_summary(tests: List[TestExecution], sort_by: str = 'total'):
             if test.phases['Restoring'].end_time is None:
                 restore_str += "*"
         
+        debug_str = "-"
+        if 'Debugging' in test.phases:
+            debug_str = format_duration(test.debug_duration)
+            if test.phases['Debugging'].end_time is None:
+                debug_str += "*"
+        
         total_str = format_duration(test.total_duration)
         # Mark total as incomplete if any phase is incomplete
         if any(phase.end_time is None for phase in test.phases.values()):
@@ -262,10 +280,11 @@ def print_summary(tests: List[TestExecution], sort_by: str = 'total'):
               f"{prepare_str:>12} "
               f"{execute_str:>12} "
               f"{restore_str:>12} "
+              f"{debug_str:>12} "
               f"{total_str:>12}")
     
-    print("-" * 110)
-    print(f"{'TOTAL (completed phases)':<70} {'':<12} {'':<12} {'':<12} {format_duration(total_time):>12}")
+    print("-" * 122)
+    print(f"{'TOTAL (completed phases)':<70} {'':<12} {'':<12} {'':<12} {'':<12} {format_duration(total_time):>12}")
     if incomplete_tests > 0:
         print("\n* = Phase incomplete (no end time in log)")
         print("- = Phase not started or not logged")
@@ -304,7 +323,7 @@ Examples:
     
     parser.add_argument(
         '--sort-by',
-        choices=['total', 'prepare', 'execute', 'restore'],
+        choices=['total', 'prepare', 'execute', 'restore', 'debug'],
         default='total',
         help='Sort tests by phase time (default: total)'
     )

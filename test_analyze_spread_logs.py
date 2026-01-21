@@ -185,8 +185,11 @@ class TestAnalyzeLogs(unittest.TestCase):
         # Check execute duration (11:16:13 to 11:16:14 = 1 second)
         self.assertEqual(firefox.execute_duration, 1.0)
         
-        # Check total duration
-        self.assertEqual(firefox.total_duration, 59.0)
+        # Check restore duration (11:16:14 to 11:16:45 when spotify prepares = 31 seconds)
+        self.assertEqual(firefox.restore_duration, 31.0)
+        
+        # Check total duration (58 + 1 + 31 = 90 seconds)
+        self.assertEqual(firefox.total_duration, 90.0)
     
     def test_maas_test_timing(self):
         """Test specific timing calculations for maas test."""
@@ -203,8 +206,8 @@ class TestAnalyzeLogs(unittest.TestCase):
         # Check prepare duration (11:15:17 to 11:16:01 = 44 seconds)
         self.assertEqual(maas.prepare_duration, 44.0)
         
-        # Execute phase has no end time in the log
-        self.assertEqual(maas.execute_duration, 0.0)
+        # Execute phase (11:16:01 to 11:16:13 when firefox executes = 12 seconds)
+        self.assertEqual(maas.execute_duration, 12.0)
     
     def test_spotify_test_timing(self):
         """Test specific timing calculations for spotify test."""
@@ -407,10 +410,10 @@ class TestSequentialPhases(unittest.TestCase):
 2026-01-13 11:16:00 Executing garden:archlinux-cloud:tests/desktop/broken (garden:archlinux-cloud) (1/10)...
 2026-01-13 11:16:05 Restoring garden:archlinux-cloud:tests/desktop/broken (garden:archlinux-cloud)...
 2026-01-13 11:16:10 Debugging garden:archlinux-cloud:tests/desktop/broken (garden:archlinux-cloud)...
-2026-01-13 11:16:20 Preparing garden:archlinux-cloud:tests/desktop/broken (garden:archlinux-cloud)..."""
+2026-01-13 11:16:20 Preparing garden:archlinux-cloud:tests/desktop/good (garden:archlinux-cloud)..."""
         
         tests = analyze_module.analyze_logs(log)
-        broken_test = tests[0]
+        broken_test = next(t for t in tests if t.test_name == "tests/desktop/broken")
         
         # Test should have all four phases
         self.assertIn("Preparing", broken_test.phases)
@@ -428,7 +431,7 @@ class TestSequentialPhases(unittest.TestCase):
         # Restoring: 11:16:05 to 11:16:10 = 5 seconds
         self.assertEqual(broken_test.restore_duration, 5.0)
         
-        # Debugging: 11:16:10 to 11:16:20 = 10 seconds (ends when same test repeats)
+        # Debugging: 11:16:10 to 11:16:20 = 10 seconds (ends when next test starts)
         self.assertEqual(broken_test.debug_duration, 10.0)
         
         # Total: 45 + 5 + 5 + 10 = 65 seconds
@@ -453,8 +456,15 @@ class TestSequentialPhases(unittest.TestCase):
         # Debug duration should be 0
         self.assertEqual(good_test.debug_duration, 0.0)
         
-        # Total should not include debug
-        self.assertEqual(good_test.total_duration, 50.0)  # 45 + 5 + 0
+        # Preparing: 11:15:15 to 11:16:00 = 45 seconds
+        self.assertEqual(good_test.prepare_duration, 45.0)
+        # Executing: 11:16:00 to 11:16:05 = 5 seconds
+        self.assertEqual(good_test.execute_duration, 5.0)
+        # Restoring: 11:16:05 to 11:16:10 = 5 seconds (ends when next test starts preparing)
+        self.assertEqual(good_test.restore_duration, 5.0)
+        
+        # Total should be 45 + 5 + 5 = 55 seconds
+        self.assertEqual(good_test.total_duration, 55.0)
 
 
 if __name__ == '__main__':

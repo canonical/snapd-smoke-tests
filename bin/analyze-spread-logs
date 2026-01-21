@@ -116,6 +116,13 @@ def analyze_logs(log_content: str) -> List[TestExecution]:
     """
     Analyze spread log content and extract test execution information.
     
+    Tests execute sequentially through phases (Preparing → Executing → Restoring → Debugging).
+    When tests run with multiple workers, they can execute concurrently, but each individual
+    test still progresses through its phases sequentially.
+    
+    For sequential execution (workers=1), a test's last phase ends when any subsequent
+    test phase begins.
+    
     Args:
         log_content: The content of the spread log file
         
@@ -136,15 +143,16 @@ def analyze_logs(log_content: str) -> List[TestExecution]:
     # Group entries by test to handle concurrent execution
     # Note: If a test is retried (same phase appears multiple times), only the last occurrence
     # will be recorded. This is acceptable for typical smoke test runs where tests run once.
-    test_phases_sequence: Dict[str, List[Tuple[datetime, str]]] = {}
+    test_phases_sequence: Dict[str, List[Tuple[int, datetime, str]]] = {}
     
-    for timestamp, phase, system, test_name in log_entries:
+    for idx, (timestamp, phase, system, test_name) in enumerate(log_entries):
         test_key = f"{system}:{test_name}"
         
         if test_key not in test_phases_sequence:
             test_phases_sequence[test_key] = []
         
-        test_phases_sequence[test_key].append((timestamp, phase))
+        # Store the index in the global log_entries list along with phase info
+        test_phases_sequence[test_key].append((idx, timestamp, phase))
     
     # Third pass: calculate durations for each test
     for test_key, phase_sequence in test_phases_sequence.items():
@@ -161,20 +169,32 @@ def analyze_logs(log_content: str) -> List[TestExecution]:
         test = TestExecution(test_name=test_name, system=system)
         
         # Process each phase in sequence
-        # Note: If the same phase appears multiple times (e.g., due to retries), the first
-        # start time and last end time will be used, which may not accurately reflect the
-        # actual execution time. For typical smoke tests where each phase runs once per test,
-        # this is not an issue.
-        for i, (timestamp, phase) in enumerate(phase_sequence):
+        # Note: If the same phase appears multiple times (e.g., due to retries), we keep
+        # the last occurrence. For typical smoke tests where each test runs once, this is
+        # not an issue.
+        for i, (global_idx, timestamp, phase) in enumerate(phase_sequence):
             if phase not in test.phases:
                 test.phases[phase] = TestPhase(name=phase, start_time=timestamp)
+            else:
+                # Phase appearing again (retry) - update start time
+                test.phases[phase].start_time = timestamp
+                test.phases[phase].end_time = None
             
-            # Find the end time: next phase for this test
+            # Find the end time for this phase
+            end_time = None
+            
+            # First, try to find the next phase for this same test
             if i + 1 < len(phase_sequence):
-                next_timestamp, next_phase = phase_sequence[i + 1]
-                test.phases[phase].end_time = next_timestamp
-            # If this is the last phase, we can't determine end time from this log
-            # (it might still be running or completed after the log was captured)
+                _, next_timestamp, _ = phase_sequence[i + 1]
+                end_time = next_timestamp
+            else:
+                # This is the last phase for this test
+                # For sequential execution, look for the next log entry from ANY test
+                if global_idx + 1 < len(log_entries):
+                    next_entry_timestamp, _, _, _ = log_entries[global_idx + 1]
+                    end_time = next_entry_timestamp
+            
+            test.phases[phase].end_time = end_time
         
         tests[test_key] = test
     

@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
-.PHONY: check fmt fmt-sh fmt-yaml check-shfmt check-shellcheck check-yaml check-reuse
+.PHONY: check fmt fmt-sh fmt-yaml check-shfmt check-shellcheck check-yaml check-reuse check-py
 
-check: check-shellcheck check-shfmt check-reuse
+check: check-shellcheck check-shfmt check-reuse check-py
 fmt: fmt-sh fmt-yaml
 
 SCRIPTS_SH=bin/snap-install $(wildcard spread/*.sh) run-spread.sh
@@ -25,3 +25,7 @@ fmt-yaml:
 # https://reuse.software/
 check-reuse:
 	reuse lint
+
+# Run Python unit tests
+check-py:
+	python3 test_analyze_spread_logs.py

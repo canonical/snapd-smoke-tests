@@ -101,3 +101,18 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: debian-cloud-sid
+            - name: Analyze test execution times
+              if: always()
+              run: |
+                if [ -f spread.log ]; then
+                  echo "## Test Execution Time Analysis" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  # Run analysis and save to file, displaying output
+                  if ./bin/analyze-spread-logs <spread.log | tee test-times-debian-cloud-sid.txt; then
+                    :  # Success - output already captured
+                  else
+                    echo "No test execution data found"
+                  fi
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                fi

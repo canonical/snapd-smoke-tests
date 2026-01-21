@@ -103,6 +103,22 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ubuntu-cloud-24.04
+            - name: Analyze test execution times
+              if: always()
+              run: |
+                if [ -f spread.log ]; then
+                  echo "## Test Execution Time Analysis" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  # Run analysis and save to file, displaying output
+                  if ./bin/analyze-spread-logs <spread.log | tee test-times-ubuntu-cloud-24.04.txt; then
+                    :  # Success - output already captured
+                  else
+                    echo "No test execution data found"
+                  fi
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                fi
+
     test:
         runs-on: ubuntu-latest
         needs: canary
@@ -160,3 +176,18 @@ jobs:
                 cache-prepared-images: ${{ matrix.garden-system == 'archlinux-cloud' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ matrix.garden-system }}
+            - name: Analyze test execution times
+              if: always()
+              run: |
+                if [ -f spread.log ]; then
+                  echo "## Test Execution Time Analysis" >> $GITHUB_STEP_SUMMARY
+                  echo "" >> $GITHUB_STEP_SUMMARY
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                  # Run analysis and save to file, displaying output
+                  if ./bin/analyze-spread-logs <spread.log | tee test-times-${{ matrix.garden-system }}.txt; then
+                    :  # Success - output already captured
+                  else
+                    echo "No test execution data found"
+                  fi
+                  echo '```' >> $GITHUB_STEP_SUMMARY
+                fi

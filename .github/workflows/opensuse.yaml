@@ -97,7 +97,7 @@ jobs:
                   image-name: nginx
                   mode: save
     spread:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted-linux-amd64-noble-large
         needs: prepare-docker-image
         steps:
             - name: Checkout code

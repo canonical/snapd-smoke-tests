@@ -85,7 +85,7 @@ jobs:
                   image-name: nginx
                   mode: save
     canary:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted-linux-amd64-noble-large
         needs: prepare-docker-image
         steps:
             - name: Checkout code
@@ -120,7 +120,7 @@ jobs:
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ubuntu-cloud-24.04
     test:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted-linux-amd64-noble-large
         needs: [canary, prepare-docker-image]
         strategy:
             fail-fast: false

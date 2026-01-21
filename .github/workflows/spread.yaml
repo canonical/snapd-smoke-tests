@@ -96,7 +96,7 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@329568e2f2125fe231b3b7b8eb9a49a3468ff66a
+              uses: zyga/image-garden-action@7d0845ae70a383f9654e7af8d4a38b7b6e19de7c
               with:
                 snapd-channel: latest/edge
                 garden-system: ubuntu-cloud-24.04
@@ -167,7 +167,7 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@329568e2f2125fe231b3b7b8eb9a49a3468ff66a
+              uses: zyga/image-garden-action@7d0845ae70a383f9654e7af8d4a38b7b6e19de7c
               with:
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}

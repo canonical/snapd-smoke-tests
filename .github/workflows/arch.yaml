@@ -6,7 +6,7 @@ on:
     workflow_dispatch:
         inputs:
             arch-repo-pr:
-                description: "URL of to the PR to the pkgbuilds repository"
+                description: "URL to the PR to the pkgbuilds repository"
                 type: string
                 required: true
             arch-repo-subdir:

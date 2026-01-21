@@ -106,7 +106,7 @@ jobs:
             - name: Run integration tests
               uses: zyga/image-garden-action@7d0845ae70a383f9654e7af8d4a38b7b6e19de7c
               with:
-                garden-system: ${{inputs.garden-system }}
+                garden-system: ${{ inputs.garden-system }}
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts

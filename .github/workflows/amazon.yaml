@@ -7,8 +7,12 @@ on:
         inputs:
             amazon-variant:
                 description: "Amazon Linux variant"
-                type: string
+                type: choice
                 default: "amazonlinux-cloud-2023"
+                required: true
+                options:
+                    - amazonlinux-cloud-2
+                    - amazonlinux-cloud-2023
             artifact-repo:
                 # typically https://github.com/bboozzoo/snapd-amazon-linux
                 description: "Github repository which produced artifacts, format: OWNER/NAME"

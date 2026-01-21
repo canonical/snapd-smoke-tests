@@ -7,7 +7,7 @@ on:
         inputs:
             opensuse-variant:
                 description: "openSUSE variant"
-                type: string
+                type: choice
                 default: "opensuse-cloud-tumbleweed-apparmor"
                 required: true
                 options:

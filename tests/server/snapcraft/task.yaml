@@ -9,7 +9,6 @@ kill-timeout: 5m
 warn-timeout: 3m
 systems:
     # Those cannot mount squashfs in the LXD container, presumably due to missing FUSE support.
-    - -amazonlinux-cloud-2
     - -debian-cloud-11
     - -ubuntu-cloud-20.04
 execute: |

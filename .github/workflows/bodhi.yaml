@@ -120,7 +120,7 @@ jobs:
                 echo X_SPREAD_BODHI_ADVISORY_ID="${{ inputs.bodhi-advisory-id || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_CI_MODE_CLEAN_INSTALL="${{ inputs.clean-install || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@7d0845ae70a383f9654e7af8d4a38b7b6e19de7c
+              uses: zyga/image-garden-action@3a6aa9042a0b994707108d1b205c4ac1845cebe5
               with:
                 garden-system: ${{ inputs.garden-system }}
                 snapd-channel: latest/edge

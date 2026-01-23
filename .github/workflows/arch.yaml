@@ -115,7 +115,7 @@ jobs:
                 echo X_SPREAD_ARCH_SNAPD_REPO_SUBDIR="${{ inputs.arch-repo-subdir || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_CI_MODE_CLEAN_INSTALL="${{ inputs.clean-install || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@7d0845ae70a383f9654e7af8d4a38b7b6e19de7c
+              uses: zyga/image-garden-action@3a6aa9042a0b994707108d1b205c4ac1845cebe5
               with:
                 garden-system: archlinux-cloud
                 snapd-channel: latest/edge

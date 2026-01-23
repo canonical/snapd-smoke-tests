@@ -119,6 +119,8 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ubuntu-cloud-24.04
+                # disable apt-cacher-ng
+                cache-deb-packages: "false"
             - name: Show apt-cacher-ng logs
               if: always()
               run: |
@@ -187,6 +189,8 @@ jobs:
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ matrix.garden-system }}
                 spread-variant: plus
+                # disable apt-cacher-ng
+                cache-deb-packages: "false"
             - name: Show apt-cacher-ng logs
               if: always()
               run: |

@@ -119,6 +119,11 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ubuntu-cloud-24.04
+            - name: Show apt-cacher-ng logs
+              if: always()
+              run: |
+                sudo snap logs image-garden.apt-cacher-ng
+
     test:
         runs-on: self-hosted-linux-amd64-noble-large
         needs: [canary, prepare-docker-image]
@@ -182,3 +187,7 @@ jobs:
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ matrix.garden-system }}
                 spread-variant: plus
+            - name: Show apt-cacher-ng logs
+              if: always()
+              run: |
+                sudo snap logs image-garden.apt-cacher-ng

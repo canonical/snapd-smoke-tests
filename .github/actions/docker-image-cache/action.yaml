@@ -1,0 +1,80 @@
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Canonical Ltd.
+name: Docker Image Cache
+description: Download, compress and cache Docker images as artifacts or restore them
+inputs:
+    image-name:
+        description: "Name of the Docker image to cache"
+        required: false
+        default: "nginx"
+    mode:
+        description: "Mode: 'save' to cache image or 'restore' to retrieve it"
+        required: true
+outputs:
+    image-path:
+        description: "Path to the Docker image tar file"
+        value: ${{ steps.set-output.outputs.image-path }}
+runs:
+    using: composite
+    steps:
+        - name: Save Docker image
+          if: inputs.mode == 'save'
+          shell: bash
+          run: |
+              set -ex
+              IMAGE_NAME="${{ inputs.image-name }}"
+              # Sanitize image name for filename (replace / and : with -)
+              SAFE_NAME=$(echo "$IMAGE_NAME" | tr '/:' '-')
+              
+              mkdir -p docker-cache
+              
+              echo "Pulling Docker image: $IMAGE_NAME"
+              docker pull "$IMAGE_NAME"
+              
+              echo "Exporting Docker image to tar file"
+              docker save "$IMAGE_NAME" -o "docker-cache/docker-image-${SAFE_NAME}.tar"
+              
+              echo "Compressing tar file with gzip"
+              gzip "docker-cache/docker-image-${SAFE_NAME}.tar"
+              
+              echo "Image exported and compressed to docker-cache/docker-image-${SAFE_NAME}.tar.gz"
+              ls -lh docker-cache/
+
+        - name: Upload Docker image artifact
+          if: inputs.mode == 'save'
+          uses: actions/upload-artifact@v4
+          with:
+              name: docker-image-${{ inputs.image-name }}
+              path: docker-cache/docker-image-*.tar.gz
+              retention-days: 7
+              compression-level: 0
+
+        - name: Download Docker image artifact
+          if: inputs.mode == 'restore'
+          uses: actions/download-artifact@v4
+          with:
+              name: docker-image-${{ inputs.image-name }}
+              path: docker-cache
+
+        - name: Restore Docker image
+          if: inputs.mode == 'restore'
+          shell: bash
+          run: |
+              set -ex
+              IMAGE_NAME="${{ inputs.image-name }}"
+              # Sanitize image name for filename (replace / and : with -)
+              SAFE_NAME=$(echo "$IMAGE_NAME" | tr '/:' '-')
+              
+              echo "Decompressing Docker image"
+              gunzip "docker-cache/docker-image-${SAFE_NAME}.tar.gz"
+              
+              echo "Docker image ready at docker-cache/docker-image-${SAFE_NAME}.tar"
+              ls -lh docker-cache/
+
+        - name: Set output path
+          id: set-output
+          shell: bash
+          run: |
+              IMAGE_NAME="${{ inputs.image-name }}"
+              SAFE_NAME=$(echo "$IMAGE_NAME" | tr '/:' '-')
+              echo "image-path=docker-cache/docker-image-${SAFE_NAME}.tar" >> $GITHUB_OUTPUT

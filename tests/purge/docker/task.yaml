@@ -16,6 +16,17 @@ prepare: |
         fi
         sleep 1
     done
+
+    # Load the cached Docker image if available, otherwise pull from Docker Hub
+    CACHED_IMAGE="$SPREAD_PATH/docker-cache/docker-image-nginx.tar"
+    if [ -f "$CACHED_IMAGE" ]; then
+        echo "Loading cached nginx image from $CACHED_IMAGE"
+        snap run docker load -i "$CACHED_IMAGE"
+    else
+        echo "No cached image found, pulling nginx from Docker Hub"
+        snap run docker pull nginx
+    fi
+
     # Launch a container that runs in the background.
     snap run docker run -v ./public_html:/usr/share/nginx/html:ro -d -p 8080:80 nginx
     for _ in $(seq 5); do

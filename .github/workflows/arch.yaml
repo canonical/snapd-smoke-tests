@@ -106,3 +106,4 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: archlinux-cloud
+                spread-variant: plus

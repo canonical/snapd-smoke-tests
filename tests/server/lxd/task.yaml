@@ -8,7 +8,8 @@ environment:
     # the default track may be different than all of the above
     LXD_TRACK/lxd_default:
 skip:
-  - if: [ -n "$LXD_TRACK" ] && [[ "$SPREAD_SYSTEM" != *ubuntu* ]]
+  - if: |
+      [ -n "$LXD_TRACK" ] && [[ "$SPREAD_SYSTEM" != *ubuntu* ]]
     reason: decreasing test load on selected systems
 execute: |
     snap run lxd --help | MATCH 'The LXD container manager'

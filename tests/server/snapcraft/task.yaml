@@ -14,7 +14,8 @@ systems:
     - -debian-cloud-11
     - -ubuntu-cloud-20.04
 skip:
-  - if: [ -n "$LXD_TRACK" ] && [[ "$SPREAD_SYSTEM" != *ubuntu* ]]
+  - if: |
+      [ -n "$LXD_TRACK" ] && [[ "$SPREAD_SYSTEM" != *ubuntu* ]]
     reason: decreasing test load on selected systems
 execute: |
     snap run snapcraft --help 2>&1 | MATCH 'Package, distribute, and update snaps for Linux and IoT'

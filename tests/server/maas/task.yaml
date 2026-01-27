@@ -4,6 +4,8 @@ environment:
     MAAS_TRACK/3_6: "3.6"
     MAAS_TRACK/3_5: "3.5"
     MAAS_TRACK/3_4: "3.4"
+systems:
+  - ubuntu-*
 execute: |
     snap run maas --help | MATCH 'usage: maas \[-h\] COMMAND \.\.\.'
     # Initialize maas and connect it to the test database.

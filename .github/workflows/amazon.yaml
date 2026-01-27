@@ -140,3 +140,4 @@ jobs:
                 spread-tasks: "tests/server/..."
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ inputs.amazon-variant }}
+                spread-variant: plus

@@ -118,3 +118,4 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ inputs.opensuse-variant }}
+                spread-variant: plus

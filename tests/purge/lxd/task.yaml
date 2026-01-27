@@ -12,9 +12,13 @@ environment:
     LXD_TRACK/5_21: "5.21"
     LXD_TRACK/6: 6
     LXD_TRACK/latest: latest
+skip:
+  - if: |
+      [ -n "$LXD_TRACK" ] && [[ "$SPREAD_SYSTEM" != *ubuntu* ]]
+    reason: decreasing test load on selected systems
 prepare: |
     snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
-    # LXD is not immediately ready to accept API requets.
+    # LXD is not immediately ready to accept API requests.
     snap run lxd waitready
     # Initialize LXD storage and networking with default settings.
     snap run lxd init --auto

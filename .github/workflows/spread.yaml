@@ -160,3 +160,4 @@ jobs:
                 cache-prepared-images: ${{ matrix.garden-system == 'archlinux-cloud' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ matrix.garden-system }}
+                spread-variant: plus

@@ -15,3 +15,4 @@
 .spread-reuse.*.yaml
 .spread-reuse.yaml
 spread-logs/*.log
+docker-cache/

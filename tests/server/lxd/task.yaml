@@ -20,7 +20,7 @@ prepare: |
     else
         snap-install lxd
     fi
-    # LXD is not immediately ready to accept API requets.
+    # LXD is not immediately ready to accept API requests.
     snap run lxd waitready
     # Initialize LXD storage and networking with default settings.
     snap run lxd init --auto

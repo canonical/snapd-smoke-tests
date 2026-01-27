@@ -6,7 +6,6 @@ inputs:
     image-name:
         description: "Name of the Docker image to cache"
         required: false
-        default: "nginx"
     mode:
         description: "Mode: 'save' to cache image or 'restore' to retrieve it"
         required: true
@@ -18,7 +17,7 @@ runs:
     using: composite
     steps:
         - name: Save Docker image
-          if: inputs.mode == 'save'
+          if: inputs.mode == 'save' && inputs.image-name != ''
           shell: bash
           run: |
               set -ex
@@ -41,7 +40,7 @@ runs:
               ls -lh docker-cache/
 
         - name: Upload Docker image artifact
-          if: inputs.mode == 'save'
+          if: inputs.mode == 'save' && inputs.image-name != ''
           uses: actions/upload-artifact@v4
           with:
               name: docker-image-${{ inputs.image-name }}
@@ -50,14 +49,14 @@ runs:
               compression-level: 0
 
         - name: Download Docker image artifact
-          if: inputs.mode == 'restore'
+          if: inputs.mode == 'restore' && inputs.image-name != ''
           uses: actions/download-artifact@v4
           with:
               name: docker-image-${{ inputs.image-name }}
               path: docker-cache
 
         - name: Restore Docker image
-          if: inputs.mode == 'restore'
+          if: inputs.mode == 'restore' && inputs.image-name != ''
           shell: bash
           run: |
               set -ex
@@ -73,6 +72,7 @@ runs:
 
         - name: Set output path
           id: set-output
+          if: inputs.image-name != ''
           shell: bash
           run: |
               IMAGE_NAME="${{ inputs.image-name }}"

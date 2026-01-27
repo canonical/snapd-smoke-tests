@@ -7,7 +7,7 @@ SPDX-FileCopyrightText: Canonical Ltd.
 ### `image-name`
 - **Description:** Name of the Docker image to cache
 - **Required:** No
-- **Default:** `nginx`
+- **Default:** None (if empty, all steps are skipped)
 
 ### `mode`
 - **Description:** Operating mode - either `save` or `restore`
@@ -15,6 +15,8 @@ SPDX-FileCopyrightText: Canonical Ltd.
 - **Options:**
   - `save`: Pull image from Docker Hub, export, compress, and upload as artifact
   - `restore`: Download artifact, decompress, and make available in workspace
+
+**Note:** If `image-name` is empty or not provided, the action does nothing (all steps are skipped).
 
 ## Outputs
 

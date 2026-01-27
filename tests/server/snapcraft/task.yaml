@@ -5,6 +5,7 @@ environment:
     LXD_TRACK/lxd_5_21: "5.21"
     LXD_TRACK/lxd_6: 6
     LXD_TRACK/lxd_latest: latest
+    LXD_TRACK/default:
 kill-timeout: 5m
 warn-timeout: 3m
 systems:
@@ -12,6 +13,9 @@ systems:
     - -amazonlinux-cloud-2
     - -debian-cloud-11
     - -ubuntu-cloud-20.04
+skip:
+  - if: [ -n "$LXD_TRACK" ] && [[ "$SPREAD_SYSTEM" != *ubuntu* ]]
+    reason: decreasing test load on selected systems
 execute: |
     snap run snapcraft --help 2>&1 | MATCH 'Package, distribute, and update snaps for Linux and IoT'
     # This may fail due to https://github.com/canonical/lxd/issues/12084
@@ -22,7 +26,11 @@ execute: |
 debug: |
     cat ~/.local/state/snapcraft/log/snapcraft-*.log || true
 prepare: |
-    snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
+    if [ -n "$LXD_TRACK" ]; then
+        snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
+    else
+        snap-install lxd
+    fi
     # LXD is not immediately ready to accept API requets.
     snap run lxd waitready
     # Initialize LXD storage and networking with default settings.

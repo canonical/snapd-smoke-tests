@@ -7,6 +7,9 @@ environment:
     LXD_TRACK/lxd_latest: latest
     # the default track may be different than all of the above
     LXD_TRACK/lxd_default:
+skip:
+  - if: [ -n "$LXD_TRACK" ] && [[ "$SPREAD_SYSTEM" != *ubuntu* ]]
+    reason: decreasing test load on selected systems
 execute: |
     snap run lxd --help | MATCH 'The LXD container manager'
     snap run lxd.lxc launch ubuntu:24.04 u1

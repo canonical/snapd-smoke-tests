@@ -7,6 +7,8 @@ environment:
     # LXD_TRACK/lxd_5_21: "5.21"
     # LXD_TRACK/lxd_6: 6
     # LXD_TRACK/lxd_latest: latest
+    # the one below is intentionally empty: use the default LXD track until
+    # buildd image caching is available
     LXD_TRACK/default:
 kill-timeout: 5m
 warn-timeout: 3m

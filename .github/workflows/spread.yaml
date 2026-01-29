@@ -122,7 +122,7 @@ jobs:
                 # disable apt-cacher-ng
                 cache-deb-packages: "false"
             - name: Show apt-cacher-ng logs
-              if: always()
+              if: failure()
               run: |
                 sudo snap logs image-garden.apt-cacher-ng
 
@@ -192,6 +192,6 @@ jobs:
                 # disable apt-cacher-ng
                 cache-deb-packages: "false"
             - name: Show apt-cacher-ng logs
-              if: always()
+              if: failure()
               run: |
                 sudo snap logs image-garden.apt-cacher-ng

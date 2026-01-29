@@ -125,6 +125,10 @@ jobs:
               if: failure()
               run: |
                 sudo snap logs image-garden.apt-cacher-ng
+            - name: Show image-garden serial logs
+              if: failure()
+              run: |
+                grep -n '' .image-garden/*.serial.log || true
 
     test:
         runs-on: self-hosted-linux-amd64-noble-large
@@ -195,3 +199,7 @@ jobs:
               if: failure()
               run: |
                 sudo snap logs image-garden.apt-cacher-ng
+            - name: Show image-garden serial logs
+              if: failure()
+              run: |
+                grep -n '' .image-garden/*.serial.log || true

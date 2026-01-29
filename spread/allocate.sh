@@ -10,6 +10,8 @@ fi
 # Check which architecture we will run on.
 : "${ARCH:="$(uname -m)"}"
 
+ALLOCATE_TIMEOUT="${ALLOCATE_TIMEOUT-5m}"
+
 # Give each virtual machine 2 gigabytes of RAM.
 # Note that this is in sync with the "-object memory-backend" entry below.
 export QEMU_MEM_OPTION='-m 2048'
@@ -62,7 +64,7 @@ if [ -x "${SNAP-}"/usr/libexec/virtiofsd ]; then
 	SHM_PATH=/dev/shm/"$(if test -n "${SNAP-}"; then echo snap."${SNAP_INSTANCE_NAME}"; else echo virtiofsd; fi)".spread-cache."$N"
 
 	# Allocate the system through image-garden allocator.
-	if ADDR="$(image-garden allocate \
+	if ADDR="$(timeout -p "$ALLOCATE_TIMEOUT" image-garden allocate \
 		"$SPREAD_SYSTEM"."$ARCH" \
 		-chardev socket,id=char0,path="$VIRTIOFSD_SOCK_PATH" \
 		-device vhost-user-fs-pci,queue-size=1024,chardev=char0,tag=spread-cache \
@@ -82,7 +84,7 @@ if [ -x "${SNAP-}"/usr/libexec/virtiofsd ]; then
 	fi
 else
 	# Allocate the system through image-garden allocator.
-	if ADDR="$(image-garden allocate "$SPREAD_SYSTEM"."$ARCH")"; then
+	if ADDR="$(timeout -p "$ALLOCATE_TIMEOUT" image-garden allocate "$SPREAD_SYSTEM"."$ARCH")"; then
 		echo "<ADDRESS $ADDR>"
 		exit 0
 	else

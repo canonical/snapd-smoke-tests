@@ -85,7 +85,7 @@ jobs:
                   image-name: nginx
                   mode: save
     canary:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted-linux-amd64-noble-large
         needs: prepare-docker-image
         steps:
             - name: Checkout code
@@ -112,15 +112,26 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@7d0845ae70a383f9654e7af8d4a38b7b6e19de7c
+              uses: zyga/image-garden-action@3a6aa9042a0b994707108d1b205c4ac1845cebe5
               with:
                 snapd-channel: latest/edge
                 garden-system: ubuntu-cloud-24.04
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ubuntu-cloud-24.04
+                # disable apt-cacher-ng
+                cache-deb-packages: "false"
+            - name: Show apt-cacher-ng logs
+              if: failure()
+              run: |
+                sudo snap logs image-garden.apt-cacher-ng
+            - name: Show image-garden serial logs
+              if: failure()
+              run: |
+                grep -n '' .image-garden/*.serial.log || true
+
     test:
-        runs-on: ubuntu-latest
+        runs-on: self-hosted-linux-amd64-noble-large
         needs: [canary, prepare-docker-image]
         strategy:
             fail-fast: false
@@ -173,7 +184,7 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@7d0845ae70a383f9654e7af8d4a38b7b6e19de7c
+              uses: zyga/image-garden-action@3a6aa9042a0b994707108d1b205c4ac1845cebe5
               with:
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
@@ -182,3 +193,13 @@ jobs:
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ matrix.garden-system }}
                 spread-variant: plus
+                # disable apt-cacher-ng
+                cache-deb-packages: "false"
+            - name: Show apt-cacher-ng logs
+              if: failure()
+              run: |
+                sudo snap logs image-garden.apt-cacher-ng
+            - name: Show image-garden serial logs
+              if: failure()
+              run: |
+                grep -n '' .image-garden/*.serial.log || true

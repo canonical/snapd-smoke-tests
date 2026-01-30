@@ -127,7 +127,6 @@ jobs:
             matrix:
                 garden-system:
                     - almalinux-cloud-8
-                    - amazonlinux-cloud-2
                     - amazonlinux-cloud-2023
                     - archlinux-cloud
                     - centos-cloud-10

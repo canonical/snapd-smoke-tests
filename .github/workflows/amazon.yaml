@@ -118,15 +118,11 @@ jobs:
                 # downloads and extracts the artifacts
                 gh run download -R "${{ inputs.artifact-repo }}" "${{ inputs.artifact-repo-run-id }}"
                 find repo-tarball-amazonlinux-* -ls || true
-                # we should get the following files:
-                # repo-tarball-amazonlinux-2/amazon-linux-2-repo.tar.xz
+                # we should get the following file:
                 # repo-tarball-amazonlinux-2023/amazon-linux-2023-repo.tar.xz
                 case "${{ inputs.amazon-variant }}" in
                 amazonlinux-cloud-2023*)
                     repo_file=./repo-tarball-amazonlinux-2023/amazon-linux-2023-repo.tar.xz
-                    ;;
-                amazonlinux-cloud-2)
-                    repo_file=./repo-tarball-amazonlinux-2/amazon-linux-2-repo.tar.xz
                     ;;
                 *)
                     echo "unexpected variant?"

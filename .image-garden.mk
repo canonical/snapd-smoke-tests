@@ -35,6 +35,11 @@ packages:
 # To clone and build snapd.
 - base-devel
 - git
+bootcmd:
+# systemd-time-wait-sync is enabled and will delay the boot until time has been
+# updated over NTP, however all UDP traffic is blocked in self-hosted
+# environments
+- systemctl disable --now systemd-time-wait-sync.service
 endef
 
 define AMAZONLINUX_2_CLOUD_INIT_USER_DATA_TEMPLATE

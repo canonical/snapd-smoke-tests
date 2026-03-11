@@ -13,6 +13,10 @@ elif [ -n "$(command -v dnf)" ]; then
 elif [ -n "$(command -v yum)" ]; then
 	yum remove -y snapd
 elif [ -n "$(command -v zypper)" ]; then
+	# due to https://bugzilla.suse.com/show_bug.cgi?id=1245551 subsequent
+	# installations and removals are broken we need to stop snapd explicitly or
+	# force a specific code path in systemd-update-helper
+	rm -rfv /run/systemd/rpm/
 	zypper remove -y snapd
 elif [ -n "$(command -v pacman)" ]; then
 	pacman --noconfirm -R snapd

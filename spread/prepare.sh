@@ -185,7 +185,7 @@ amazonlinux-*)
 			;;
 		*)
 			yum distro-sync -y
-			dnf install -y snapd
+			yum install -y snapd
 			;;
 		esac
 	elif [ ! -x /usr/bin/snap ]; then

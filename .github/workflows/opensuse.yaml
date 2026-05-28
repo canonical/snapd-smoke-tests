@@ -80,10 +80,11 @@ on:
                 description: "Snap mount directory"
                 type: choice
                 options:
+                    # default - package default
                     - default
                     - /snap
                     - /var/lib/snapd/snap
-                default: /snap
+                default: default
 
 jobs:
     prepare-docker-image:

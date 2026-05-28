@@ -132,6 +132,7 @@ environment:
     # supported mount directories on openSUSE, possible choices are:
     # - /snap
     # - /var/lib/snapd/snap
+    # - default - which is the package default
     X_SPREAD_OPENSUSE_MOUNT_DIR: '$(HOST: echo "${X_SPREAD_OPENSUSE_MOUNT_DIR:-default}")'
     X_SPREAD_AMAZON_REPO_FILE: '$(HOST: echo "${X_SPREAD_AMAZON_REPO_FILE:-}")'
     X_SPREAD_LOCAL_SNAPD_PKG: '$(HOST: echo "${X_SPREAD_LOCAL_SNAPD_PKG:-}")'

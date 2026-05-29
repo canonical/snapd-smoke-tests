@@ -77,13 +77,14 @@ on:
                 type: boolean
                 default: false
             opensuse-snap-mount-dir:
-                description: "Snap mount directory"
+                description: "Snap mount directory (use 'default' for package installation default)"
                 type: choice
                 options:
+                    # default - package default
                     - default
                     - /snap
                     - /var/lib/snapd/snap
-                default: /snap
+                default: default
 
 jobs:
     prepare-docker-image:

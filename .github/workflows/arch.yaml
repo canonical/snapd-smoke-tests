@@ -78,7 +78,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: Save Docker image
               uses: ./.github/actions/docker-image-cache
               with:
@@ -89,7 +89,7 @@ jobs:
         needs: prepare-docker-image
         steps:
             - name: Checkout code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               # This is essential for git restore-mtime to work correctly.
               with:
                 fetch-depth: 0

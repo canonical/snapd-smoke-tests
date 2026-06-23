@@ -99,7 +99,7 @@ jobs:
                   image-name: nginx
                   mode: restore
             - name: Cache downloaded snaps
-              uses: actions/cache@v5
+              uses: actions/cache@v6
               with:
                 path: .image-garden/cache-*/snaps
                 key: snaps
@@ -167,7 +167,7 @@ jobs:
                   image-name: nginx
                   mode: restore
             - name: Restore cache of downloaded snaps
-              uses: actions/cache/restore@v5
+              uses: actions/cache/restore@v6
               with:
                 path: .image-garden/cache-*/snaps
                 key: snaps

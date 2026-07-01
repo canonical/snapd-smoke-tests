@@ -10,7 +10,7 @@ for snap in $(snap list | awk '/mesa-|gnome-/ { print $1 }'); do
 done
 
 # Remove all the pre-installed snaps in the reverse order.
-for snap in core24 core22 core20 core18 core bare snapd; do
+for snap in core26 core24 core22 core20 core18 core bare snapd; do
 	snap remove --purge "$snap"
 done
 

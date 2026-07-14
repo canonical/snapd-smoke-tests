@@ -145,8 +145,8 @@ jobs:
                     - debian-cloud-sid
                     - fedora-cloud-42
                     - fedora-cloud-43
-                    - opensuse-cloud-tumbleweed-apparmor
-                    - opensuse-cloud-tumbleweed-selinux
+                    - opensuse-cloud-tumbleweed-at-apparmor
+                    - opensuse-cloud-tumbleweed-at-selinux
                     - oracle-cloud-8
                     - rocky-cloud-8
                     - ubuntu-cloud-20.04

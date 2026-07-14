@@ -49,24 +49,46 @@ runs:
               compression-level: 0
 
         - name: Download Docker image artifact
+          id: download
           if: inputs.mode == 'restore' && inputs.image-name != ''
+          continue-on-error: true
           uses: actions/download-artifact@v4
           with:
               name: docker-image-${{ inputs.image-name }}
               path: docker-cache
 
-        - name: Restore Docker image
-          if: inputs.mode == 'restore' && inputs.image-name != ''
+        - name: Restore Docker image from artifact
+          if: inputs.mode == 'restore' && inputs.image-name != '' && steps.download.outcome == 'success'
           shell: bash
           run: |
               set -ex
               IMAGE_NAME="${{ inputs.image-name }}"
               # Sanitize image name for filename (replace / and : with -)
               SAFE_NAME=$(echo "$IMAGE_NAME" | tr '/:' '-')
-              
+
               echo "Decompressing Docker image"
               gunzip "docker-cache/docker-image-${SAFE_NAME}.tar.gz"
-              
+
+              echo "Docker image ready at docker-cache/docker-image-${SAFE_NAME}.tar"
+              ls -lh docker-cache/
+
+        - name: Pull Docker image (fallback when artifact not available)
+          if: inputs.mode == 'restore' && inputs.image-name != '' && steps.download.outcome != 'success'
+          shell: bash
+          run: |
+              set -ex
+              IMAGE_NAME="${{ inputs.image-name }}"
+              # Sanitize image name for filename (replace / and : with -)
+              SAFE_NAME=$(echo "$IMAGE_NAME" | tr '/:' '-')
+
+              mkdir -p docker-cache
+
+              echo "Artifact not available, pulling Docker image directly: $IMAGE_NAME"
+              docker pull "$IMAGE_NAME"
+
+              echo "Exporting Docker image to tar file"
+              docker save "$IMAGE_NAME" -o "docker-cache/docker-image-${SAFE_NAME}.tar"
+
               echo "Docker image ready at docker-cache/docker-image-${SAFE_NAME}.tar"
               ls -lh docker-cache/
 

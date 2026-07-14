@@ -41,7 +41,7 @@ runs:
 
         - name: Upload Docker image artifact
           if: inputs.mode == 'save' && inputs.image-name != ''
-          uses: actions/upload-artifact@v4
+          uses: actions/upload-artifact@v7
           with:
               name: docker-image-${{ inputs.image-name }}
               path: docker-cache/docker-image-*.tar.gz
@@ -52,7 +52,7 @@ runs:
           id: download
           if: inputs.mode == 'restore' && inputs.image-name != ''
           continue-on-error: true
-          uses: actions/download-artifact@v4
+          uses: actions/download-artifact@v8
           with:
               name: docker-image-${{ inputs.image-name }}
               path: docker-cache

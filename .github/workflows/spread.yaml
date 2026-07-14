@@ -78,7 +78,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
             - name: Checkout code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
             - name: Save Docker image
               uses: ./.github/actions/docker-image-cache
               with:
@@ -89,7 +89,7 @@ jobs:
         needs: prepare-docker-image
         steps:
             - name: Checkout code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               # This is essential for git restore-mtime to work correctly.
               with:
                 fetch-depth: 0
@@ -99,7 +99,7 @@ jobs:
                   image-name: nginx
                   mode: restore
             - name: Cache downloaded snaps
-              uses: actions/cache@v5
+              uses: actions/cache@v6
               with:
                 path: .image-garden/cache-*/snaps
                 key: snaps
@@ -157,7 +157,7 @@ jobs:
                     - ubuntu-cloud-25.10
         steps:
             - name: Checkout code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               # This is essential for git restore-mtime to work correctly.
               with:
                 fetch-depth: 0
@@ -167,7 +167,7 @@ jobs:
                   image-name: nginx
                   mode: restore
             - name: Restore cache of downloaded snaps
-              uses: actions/cache/restore@v5
+              uses: actions/cache/restore@v6
               with:
                 path: .image-garden/cache-*/snaps
                 key: snaps

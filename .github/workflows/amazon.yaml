@@ -137,6 +137,9 @@ jobs:
                 # inside the spread allocated system with the contents of
                 # current directory uploaded as input
                 echo X_SPREAD_AMAZON_REPO_FILE="$repo_file" >> $GITHUB_ENV
+            - name: Set up pkgproxy caching proxy
+              id: pkgproxy
+              uses: zyga/setup-pkgproxy@v1
             - name: Set environment variables for spread
               run: |
                 # Export other variables that spread picks up from the host.
@@ -157,3 +160,14 @@ jobs:
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ inputs.amazon-variant }}
                 spread-variant: plus
+                cache-host-snaps: "false"
+            - name: Prepare pkgproxy cache for saving
+              if: always()
+              run: |
+                sudo systemctl stop pkgproxy.service || true
+                sudo chown -R "$USER:$USER" ${{ steps.pkgproxy.outputs.cache-dir }}
+            - if: steps.pkgproxy.outputs.package-cache-hit != 'true'
+              uses: actions/cache/save@v6
+              with:
+                path: ${{ steps.pkgproxy.outputs.cache-dir }}
+                key: ${{ steps.pkgproxy.outputs.package-cache-key-success }}

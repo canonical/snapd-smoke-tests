@@ -119,6 +119,9 @@ jobs:
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_BODHI_ADVISORY_ID="${{ inputs.bodhi-advisory-id || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_CI_MODE_CLEAN_INSTALL="${{ inputs.clean-install || '' }}" >> $GITHUB_ENV
+            - name: Set up pkgproxy caching proxy
+              id: pkgproxy
+              uses: zyga/setup-pkgproxy@v1
             - name: Run integration tests
               uses: zyga/image-garden-action@3a6aa9042a0b994707108d1b205c4ac1845cebe5
               with:
@@ -128,3 +131,14 @@ jobs:
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ inputs.garden-system }}
                 spread-variant: plus
+                cache-host-snaps: "false"
+            - name: Prepare pkgproxy cache for saving
+              if: always()
+              run: |
+                sudo systemctl stop pkgproxy.service || true
+                sudo chown -R "$USER:$USER" ${{ steps.pkgproxy.outputs.cache-dir }}
+            - if: steps.pkgproxy.outputs.package-cache-hit != 'true'
+              uses: actions/cache/save@v6
+              with:
+                path: ${{ steps.pkgproxy.outputs.cache-dir }}
+                key: ${{ steps.pkgproxy.outputs.package-cache-key-success }}

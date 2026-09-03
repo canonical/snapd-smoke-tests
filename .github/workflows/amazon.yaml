@@ -108,11 +108,6 @@ jobs:
               with:
                   image-name: nginx
                   mode: restore
-            - name: Cache downloaded snaps
-              uses: actions/cache@v6
-              with:
-                path: .image-garden/cache-*/snaps
-                key: snaps
             - name: Download artifacts
               run: |
                 # downloads and extracts the artifacts

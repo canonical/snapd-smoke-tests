@@ -220,11 +220,4 @@ ip addr list | tee ip-addr-list.debug
 # See if we can resolve snapcraft.io
 getent hosts snapcraft.io | tee getent-hosts-snapcraft-io.debug
 
-mkdir "$X_SPREAD_CACHE_DIR"
-# Opportunistically mount the architecture-specific cache directory.
-# NOTE: We don't enable DAX support as that is not universally enabled
-# in guest kernels. Failure to mount is non-fatal, as it only affects
-# performance.
-mount -t virtiofs spread-cache "$X_SPREAD_CACHE_DIR" || true
-
 exec "$SPREAD_PATH"/spread/install-snapd.sh

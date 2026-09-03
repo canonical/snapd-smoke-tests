@@ -94,11 +94,6 @@ jobs:
               with:
                   image-name: nginx
                   mode: restore
-            - name: Cache downloaded snaps
-              uses: actions/cache@v6
-              with:
-                path: .image-garden/cache-*/snaps
-                key: snaps
             - name: Set environment variables for spread
               run: |
                 # Export variables that spread picks up from the host.

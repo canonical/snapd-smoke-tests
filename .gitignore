@@ -8,10 +8,6 @@
 .image-garden/*.qcow2
 .image-garden/*.run
 .image-garden/*.user-data
-.image-garden/cache-*/snaps/
-.image-garden/cache-*/snaps/*.assert
-.image-garden/cache-*/snaps/*.snap
-.image-garden/vhostqemu.*.pid
 .spread-reuse.*.yaml
 .spread-reuse.yaml
 spread-logs/*.log

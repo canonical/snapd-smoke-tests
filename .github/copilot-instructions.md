@@ -13,8 +13,8 @@ This repository contains integration smoke tests for snapd (the snap package man
 ### Core Files
 - `spread.yaml`: Defines test systems, backends, and environment variables
 - `run-spread.sh`: Local test runner that iterates through all systems
-- `bin/snap-install`: Custom snap installer with caching (essential for performance)
 - `spread/prepare.sh`: System setup script that installs snapd on test VMs
+- `spread/install-snapd.sh`: Installs the `snapd` snap at the configured risk level (bases are pulled in automatically as dependencies)
 
 ## Critical Developer Workflows
 
@@ -36,7 +36,7 @@ Each test in `tests/**/task.yaml` follows this structure:
 ```yaml
 prepare: |
     # Install dependencies (snaps, packages)
-    snap-install hello
+    snap install hello
 execute: |
     # Run test commands
     snap run hello | MATCH 'Hello, world!'
@@ -58,9 +58,8 @@ restore: |
 - Set on host system, propagated to test VMs via spread
 
 ### Snap Installation
-- **Never use `snap install` directly** - use `bin/snap-install` for caching
-- Supports channels: `snap-install snapname track/risk`
-- Handles revision caching in `$X_SPREAD_SNAP_CACHE_DIR`
+- Use plain `snap install` — snapd/the store resolve channels and pull in required bases automatically
+- Supports channels: `snap install snapname --channel=track/risk`
 
 ### Test Debugging
 - Debug output goes to `*.debug` files (collected by spread's debug handler)
@@ -97,7 +96,7 @@ Support for testing unreleased snapd versions:
 ### Adding New Tests
 1. Create `tests/{desktop,server,purge}/newtest/task.yaml`
 2. Follow prepare/execute/restore structure
-3. Use `snap-install` for snap dependencies
+3. Use `snap install` for snap dependencies
 4. Add `MATCH` assertions for verification
 5. Test locally on one system first
 
@@ -118,10 +117,10 @@ esac
 For tests requiring containers (like snapcraft):
 ```yaml
 prepare: |
-    snap-install lxd
+    snap install lxd
     snap run lxd waitready
     snap run lxd init --auto
 ```
 
-Reference files: [`spread.yaml`](spread.yaml), [`bin/snap-install`](bin/snap-install), [`run-spread.sh`](run-spread.sh), [`tests/server/hello/task.yaml`](tests/server/hello/task.yaml)</content>
+Reference files: [`spread.yaml`](spread.yaml), [`spread/install-snapd.sh`](spread/install-snapd.sh), [`run-spread.sh`](run-spread.sh), [`tests/server/hello/task.yaml`](tests/server/hello/task.yaml)</content>
 <parameter name="filePath">/home/zyga/snapd-smoke-tests/.github/copilot-instructions.md

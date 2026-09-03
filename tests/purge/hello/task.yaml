@@ -6,4 +6,4 @@ details: |
     This test serves as the smoke test for the behavior of the snapd classic
     package maintenance scripts.
 prepare: |
-    snap-install hello
+    snap install hello

@@ -4,11 +4,7 @@ execute: |
     # TODO: grab a screenshot of running app
     snap run firefox --help | MATCH 'Firefox options'
 prepare: |
-    snap-install gnome-42-2204
-    snap-install gtk-common-themes
-    snap-install firefox
+    snap install firefox
 restore: |
-    snap remove --purge gnome-42-2204
-    snap remove --purge gtk-common-themes
     snap remove --purge firefox
 summary: Install and see Firefox help output.

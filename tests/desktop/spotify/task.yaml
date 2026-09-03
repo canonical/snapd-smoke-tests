@@ -4,11 +4,7 @@ execute: |
     # TODO: grab a screenshot of running app
     snap run spotify --help | MATCH 'Usage: Spotify <options>'
 prepare: |
-    snap-install gnome-3-38-2004
-    snap-install gtk-common-themes
-    snap-install spotify
+    snap install spotify
 restore: |
     snap remove --purge spotify
-    snap remove --purge gtk-common-themes
-    snap remove --purge gnome-3-38-2004
 summary: Install and see Spotify help output.

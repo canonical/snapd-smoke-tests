@@ -7,8 +7,6 @@ details: |
     tracked by very well and may leak after the snapd package is removed from
     the system.
 prepare: |
-    snap-install gnome-42-2204
-    snap-install gtk-common-themes
-    snap-install firefox
+    snap install firefox
 # TODO: I wonder if we can check that the mount-control mount point
 # is removed. This is a known issue in current snapd.

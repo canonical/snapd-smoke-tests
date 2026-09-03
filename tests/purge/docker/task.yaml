@@ -8,7 +8,7 @@ details: |
     tricky, especially when snapd itself is being removed and all we have is
     the distribution maintainer script.
 prepare: |
-    snap-install docker latest/"$X_SPREAD_DOCKER_RISK_LEVEL"
+    snap install docker --channel=latest/"$X_SPREAD_DOCKER_RISK_LEVEL"
     # Give docker a moment to expose the API surface.
     for _ in $(seq 5); do
         if [ -S /var/run/docker.sock ]; then

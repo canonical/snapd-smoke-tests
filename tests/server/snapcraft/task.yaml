@@ -32,9 +32,9 @@ debug: |
     cat ~/.local/state/snapcraft/log/snapcraft-*.log || true
 prepare: |
     if [ -n "$LXD_TRACK" ]; then
-        snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
+        snap install lxd --channel=${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
     else
-        snap-install lxd
+        snap install lxd
     fi
     # LXD is not immediately ready to accept API requests.
     snap run lxd waitready
@@ -52,7 +52,7 @@ prepare: |
         fi
     fi
     # Install snapcraft for building a snap.
-    snap-install --classic snapcraft latest/"${X_SPREAD_SNAPCRAFT_RISK_LEVEL}"
+    snap install --classic snapcraft --channel=latest/"${X_SPREAD_SNAPCRAFT_RISK_LEVEL}"
 restore: |
     snap remove --purge test-snapd-smoke || true
     snap remove --purge snapcraft

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 prepare: |
-    snap-install hello
+    snap install hello
 restore: |
     snap remove --purge hello
 summary: Verify migration of snap mount directory on openSUSE

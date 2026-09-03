@@ -227,4 +227,4 @@ mkdir "$X_SPREAD_CACHE_DIR"
 # performance.
 mount -t virtiofs spread-cache "$X_SPREAD_CACHE_DIR" || true
 
-exec "$SPREAD_PATH"/spread/install-snapd-and-bases.sh
+exec "$SPREAD_PATH"/spread/install-snapd.sh

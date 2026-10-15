@@ -94,9 +94,10 @@ archlinux-*)
 		rm -rf /var/tmp/snapd
 		upstream_repo="${X_SPREAD_ARCH_SNAPD_PR%/pull/*}"
 		pr_num="$(basename "$X_SPREAD_ARCH_SNAPD_PR")"
-		sudo -u archlinux git clone "$upstream_repo" /var/tmp/snapd
-		sudo -u archlinux sh -c "cd /var/tmp/snapd && git fetch origin pull/$pr_num/head:pr && git checkout pr"
 		(
+			cd /var/tmp/
+			sudo -u archlinux git clone "$upstream_repo" /var/tmp/snapd
+			sudo -u archlinux sh -c "cd /var/tmp/snapd && git fetch origin pull/$pr_num/head:pr && git checkout pr"
 			cd /var/tmp/snapd
 			if [ -n "$X_SPREAD_ARCH_SNAPD_REPO_SUBDIR" ]; then
 				cd "$X_SPREAD_ARCH_SNAPD_REPO_SUBDIR" || exit 1
@@ -106,9 +107,12 @@ archlinux-*)
 		systemctl enable --now snapd.socket
 		systemctl enable --now snapd.apparmor.service
 	elif [ ! -x /usr/bin/snap ]; then
-		# We cannot build the package as root so switch to the archlinux user.
-		sudo -u archlinux git clone https://aur.archlinux.org/snapd.git /var/tmp/snapd
-		cd /var/tmp/snapd && sudo -u archlinux makepkg -si --noconfirm
+		(
+			cd /var/tmp
+			# We cannot build the package as root so switch to the archlinux user.
+			sudo -u archlinux git clone https://aur.archlinux.org/snapd.git /var/tmp/snapd
+			cd /var/tmp/snapd && sudo -u archlinux makepkg -si --noconfirm
+		)
 		systemctl enable --now snapd.socket
 		systemctl enable --now snapd.apparmor.service
 	fi

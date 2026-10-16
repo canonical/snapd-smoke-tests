@@ -12,6 +12,9 @@ fi
 
 ALLOCATE_TIMEOUT="${ALLOCATE_TIMEOUT-5m}"
 
+# Convert spread's escaped @ symbols back to real @ for system names.
+SPREAD_SYSTEM=$(printf '%s' "$SPREAD_SYSTEM" | sed 's/-at-/@/')
+
 # Give each virtual machine 2 gigabytes of RAM.
 # Note that this is in sync with the "-object memory-backend" entry below.
 export QEMU_MEM_OPTION='-m 2048'

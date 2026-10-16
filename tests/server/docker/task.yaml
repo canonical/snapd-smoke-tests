@@ -3,7 +3,7 @@
 execute: |
     snap run docker --help | MATCH 'A self-sufficient runtime for containers'
 prepare: |
-    snap-install docker latest/"$X_SPREAD_DOCKER_RISK_LEVEL"
+    snap install docker --channel=latest/"$X_SPREAD_DOCKER_RISK_LEVEL"
 restore: |
     snap remove --purge docker
 summary: Install and see Docker help output.

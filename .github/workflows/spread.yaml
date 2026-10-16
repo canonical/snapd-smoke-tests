@@ -98,11 +98,9 @@ jobs:
               with:
                   image-name: nginx
                   mode: restore
-            - name: Cache downloaded snaps
-              uses: actions/cache@v6
-              with:
-                path: .image-garden/cache-*/snaps
-                key: snaps
+            - name: Set up pkgproxy caching proxy
+              id: pkgproxy
+              uses: zyga/setup-pkgproxy@v1
             - name: Set environment variables for spread
               run: |
                 # Export variables that spread picks up from the host.
@@ -119,12 +117,21 @@ jobs:
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ubuntu-cloud-24.04
-                # disable apt-cacher-ng
-                cache-deb-packages: "false"
+                cache-host-snaps: "false"
             - name: Show image-garden serial logs
               if: failure()
               run: |
                 grep -n '' .image-garden/*.serial.log || true
+            - name: Prepare pkgproxy cache for saving
+              if: always()
+              run: |
+                sudo systemctl stop pkgproxy.service || true
+                sudo chown -R "$USER:$USER" ${{ steps.pkgproxy.outputs.cache-dir }}
+            - if: steps.pkgproxy.outputs.package-cache-hit != 'true'
+              uses: actions/cache/save@v6
+              with:
+                path: ${{ steps.pkgproxy.outputs.cache-dir }}
+                key: ${{ steps.pkgproxy.outputs.package-cache-key-success }}
 
     test:
         runs-on: self-hosted-linux-amd64-noble-large
@@ -166,11 +173,9 @@ jobs:
               with:
                   image-name: nginx
                   mode: restore
-            - name: Restore cache of downloaded snaps
-              uses: actions/cache/restore@v6
-              with:
-                path: .image-garden/cache-*/snaps
-                key: snaps
+            - name: Set up pkgproxy caching proxy
+              id: pkgproxy
+              uses: zyga/setup-pkgproxy@v1
             - name: Set environment variables for spread
               run: |
                 # Export variables that spread picks up from the host.
@@ -189,8 +194,7 @@ jobs:
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ matrix.garden-system }}
                 spread-variant: plus
-                # disable apt-cacher-ng
-                cache-deb-packages: "false"
+                cache-host-snaps: "false"
             - name: Show image-garden serial logs
               if: failure()
               run: |

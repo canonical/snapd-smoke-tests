@@ -115,9 +115,6 @@ debug: |
     snap list || true
     snap changes || true
 environment:
-    PATH: /root/snapd-smoke-tests/bin:$PATH
-    X_SPREAD_CACHE_DIR: /mnt/cache
-    X_SPREAD_SNAP_CACHE_DIR: $X_SPREAD_CACHE_DIR/snaps
     X_SPREAD_SNAPD_RISK_LEVEL: '$(HOST: echo "${X_SPREAD_SNAPD_RISK_LEVEL:-beta}")'
     X_SPREAD_LXD_RISK_LEVEL: '$(HOST: echo "${X_SPREAD_LXD_RISK_LEVEL:-candidate}")'
     X_SPREAD_MAAS_RISK_LEVEL: '$(HOST: echo "${X_SPREAD_MAAS_RISK_LEVEL:-candidate}")'

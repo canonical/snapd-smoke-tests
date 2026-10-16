@@ -10,9 +10,8 @@ fi
 
 # Pre-install snapd as a snap. Use the latest/beta channel
 # to always test upcoming updates.
-snap-install snapd latest/"${X_SPREAD_SNAPD_RISK_LEVEL}"
-
-# Pre-install all the base snaps.
-for snap in bare core core18 core20 core22 core24; do
-	snap-install "$snap"
-done
+#
+# Base snaps (bare, core, core18, core20, core22, core24, ...) are not
+# pre-installed here: snapd installs whichever bases a given test's snaps
+# actually depend on, automatically, as part of installing those snaps.
+snap install snapd --channel=latest/"${X_SPREAD_SNAPD_RISK_LEVEL}"

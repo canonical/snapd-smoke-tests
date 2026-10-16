@@ -5,7 +5,7 @@
 check: check-shellcheck check-shfmt check-reuse
 fmt: fmt-sh fmt-yaml
 
-SCRIPTS_SH=bin/snap-install $(wildcard spread/*.sh) run-spread.sh
+SCRIPTS_SH=$(wildcard spread/*.sh) run-spread.sh
 # https://github.com/mvdan/sh
 check-shfmt:
 	shfmt --diff $(SCRIPTS_SH)

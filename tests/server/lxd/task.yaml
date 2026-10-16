@@ -17,9 +17,9 @@ execute: |
     snap run lxd.lxc exec u1 -- cat /etc/os-release | MATCH 'VERSION_ID="24.04"'
 prepare: |
     if [ -n "$LXD_TRACK" ]; then
-        snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
+        snap install lxd --channel=${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
     else
-        snap-install lxd
+        snap install lxd
     fi
     # LXD is not immediately ready to accept API requests.
     snap run lxd waitready

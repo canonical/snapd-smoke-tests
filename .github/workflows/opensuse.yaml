@@ -111,11 +111,6 @@ jobs:
               with:
                   image-name: nginx
                   mode: restore
-            - name: Cache downloaded snaps
-              uses: actions/cache@v6
-              with:
-                path: .image-garden/cache-*/snaps
-                key: snaps
             - name: Set environment variables for spread
               run: |
                 # Export variables that spread picks up from the host.
@@ -127,6 +122,9 @@ jobs:
                 echo X_SPREAD_OPENSUSE_OBS_PROJECT="${{ inputs.opensuse-obs-project || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_OPENSUSE_MOUNT_DIR="${{ inputs.opensuse-snap-mount-dir || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_CI_MODE_CLEAN_INSTALL="${{ inputs.clean-install || '' }}" >> $GITHUB_ENV
+            - name: Set up pkgproxy caching proxy
+              id: pkgproxy
+              uses: zyga/setup-pkgproxy@v1
             - name: Run integration tests
               uses: zyga/image-garden-action@3a6aa9042a0b994707108d1b205c4ac1845cebe5
               with:
@@ -136,3 +134,14 @@ jobs:
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ inputs.opensuse-variant }}
                 spread-variant: plus
+                cache-host-snaps: "false"
+            - name: Prepare pkgproxy cache for saving
+              if: always()
+              run: |
+                sudo systemctl stop pkgproxy.service || true
+                sudo chown -R "$USER:$USER" ${{ steps.pkgproxy.outputs.cache-dir }}
+            - if: steps.pkgproxy.outputs.package-cache-hit != 'true'
+              uses: actions/cache/save@v6
+              with:
+                path: ${{ steps.pkgproxy.outputs.cache-dir }}
+                key: ${{ steps.pkgproxy.outputs.package-cache-key-success }}

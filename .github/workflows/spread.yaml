@@ -112,15 +112,13 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@3a6aa9042a0b994707108d1b205c4ac1845cebe5
+              uses: zyga/image-garden-action@99544d66e30e4a11b3c64c231f7cfffc9c09fed5
               with:
                 snapd-channel: latest/edge
                 garden-system: ubuntu-cloud-24.04
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ubuntu-cloud-24.04
-                # disable apt-cacher-ng
-                cache-deb-packages: "false"
             - name: Show image-garden serial logs
               if: failure()
               run: |
@@ -180,7 +178,7 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@3a6aa9042a0b994707108d1b205c4ac1845cebe5
+              uses: zyga/image-garden-action@99544d66e30e4a11b3c64c231f7cfffc9c09fed5
               with:
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
@@ -189,8 +187,6 @@ jobs:
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ matrix.garden-system }}
                 spread-variant: plus
-                # disable apt-cacher-ng
-                cache-deb-packages: "false"
             - name: Show image-garden serial logs
               if: failure()
               run: |

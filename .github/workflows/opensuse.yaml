@@ -128,7 +128,7 @@ jobs:
                 echo X_SPREAD_OPENSUSE_MOUNT_DIR="${{ inputs.opensuse-snap-mount-dir || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_CI_MODE_CLEAN_INSTALL="${{ inputs.clean-install || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@3a6aa9042a0b994707108d1b205c4ac1845cebe5
+              uses: zyga/image-garden-action@99544d66e30e4a11b3c64c231f7cfffc9c09fed5
               with:
                 garden-system: ${{ inputs.opensuse-variant }}
                 snapd-channel: latest/edge

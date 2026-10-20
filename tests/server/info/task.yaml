@@ -20,7 +20,9 @@ execute: |
         echo "==== snapd"
         echo
 
-        snap version
+        if ! snap version --verbose ; then
+            snap version
+        fi
         echo
         snap list snapd
         echo

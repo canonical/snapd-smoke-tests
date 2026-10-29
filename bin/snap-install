@@ -38,27 +38,77 @@ esac
 snap="$1"
 channel="${2-latest/stable}"
 
+# Remember the caller's working directory. It is the spread task
+# directory, where the project-wide debug handler (spread.yaml) looks
+# for the *.debug files that we write on failure.
+task_dir="$(pwd)"
+
 mkdir -p /tmp/snap-install
 cd /tmp/snap-install
 
 echo "Asking snapd about snap $snap"
-if ! curl \
-	--fail \
-	--dump-header "$snap".header \
-	--silent \
-	--show-error \
-	--unix-socket /run/snapd.socket \
-	http://localhost/v2/find?name="$snap" \
-	>"$snap".response; then
-	rm -f "$snap".response
-	exit 69 # EX_UNAVAILABLE
-fi
+# Query snapd, retrying while it is not ready.
+#
+# Right after boot, or right after a snapd self-update and automatic
+# restart, snapd can briefly return errors for API calls, most commonly
+# an HTTP 500 for /v2/find (see
+# https://github.com/canonical/snapd-smoke-tests/issues/107).
+attempts="${X_SPREAD_SNAPD_FIND_ATTEMPTS:-15}"
+until [ "$attempts" -le 0 ]; do
+	# Don't use --fail so that we can inspect snapd's error response on
+	# failure. Record the HTTP status code and any curl error separately.
+	status_code=000
+	curl_error=""
+	if status_code="$(
+		curl --dump-header "$snap".header \
+			--silent \
+			--show-error \
+			--unix-socket /run/snapd.socket \
+			--output "$snap".response \
+			--write-out '%{http_code}' \
+			"http://localhost/v2/find?name=$snap" 2>"$snap".curl-stderr
+	)"; then
+		status_code="${status_code:-000}"
+	else
+		curl_error="$(cat "$snap".curl-stderr)"
+		status_code=000
+	fi
+	if [ "$status_code" = 200 ] && [ -z "$curl_error" ] &&
+		json_status="$(jq --raw-output .status "$snap".response 2>/dev/null)" &&
+		[ "$json_status" = OK ]; then
+		break
+	fi
+	attempts=$((attempts - 1))
+	# Record this failed attempt (including snapd's error response body)
+	# so the project-wide debug handler in spread.yaml shows what snapd
+	# said on every attempt, not just the last one.
+	{
+		echo "attempt: snapd was not ready (http status: $status_code${curl_error:+, $curl_error})"
+		if [ -s "$snap".response ]; then
+			echo "response body:"
+			cat "$snap".response
+			echo
+		fi
+		if [ "$attempts" -gt 0 ]; then
+			echo "retrying in 2 seconds ($attempts attempts left)..."
+		fi
+	} | tee -a "$task_dir"/"$snap".find-retry.debug
+	if [ "$attempts" -le 0 ]; then
+		# Log the remaining context about the failure.
+		{
+			echo "snap-install: snapd failed to answer about snap '$snap'"
+			echo "snap version:"
+			snap version
+			echo "snap changes:"
+			snap changes
+		} | tee -a "$task_dir"/"$snap".find-failure.debug
+		rm -f "$snap".response "$snap".header "$snap".curl-stderr
+		exit 69 # EX_UNAVAILABLE
+	fi
+	sleep 2
+done
 
-json_status="$(jq --raw-output .status "$snap".response)"
-if [ "$json_status" != OK ]; then
-	echo "Snapd replied with not-okay status: $json_status" >&2
-	exit 69 # EX_UNAVAILABLE
-fi
+rm -f "$snap".curl-stderr
 
 mv "$snap".response "$snap".json
 

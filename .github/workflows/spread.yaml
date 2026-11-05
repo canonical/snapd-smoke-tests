@@ -131,7 +131,7 @@ jobs:
               if: failure()
               run: |
                 echo "== image-garden.pkgproxy logs =="
-                snap logs image-garden.pkgproxy -n 500 || true
+                sudo snap logs image-garden.pkgproxy -n 500 || true
                 echo "== image-garden.pkgproxyctl stats =="
                 image-garden.pkgproxyctl stats || true
 
@@ -210,6 +210,6 @@ jobs:
               if: failure()
               run: |
                 echo "== image-garden.pkgproxy logs =="
-                snap logs image-garden.pkgproxy -n 500 || true
+                sudo snap logs image-garden.pkgproxy -n 500 || true
                 echo "== image-garden.pkgproxyctl stats =="
                 image-garden.pkgproxyctl stats || true

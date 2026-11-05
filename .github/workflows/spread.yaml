@@ -133,6 +133,8 @@ jobs:
                 echo "== image-garden revision/version =="
                 snap list image-garden || true
                 snap info image-garden || true
+                echo "== image-garden.pkgproxy daemon build version =="
+                image-garden.pkgproxyctl version || true
                 echo "== image-garden.pkgproxy logs =="
                 sudo snap logs image-garden.pkgproxy -n 500 || true
                 echo "== image-garden.pkgproxyctl stats =="
@@ -215,6 +217,8 @@ jobs:
                 echo "== image-garden revision/version =="
                 snap list image-garden || true
                 snap info image-garden || true
+                echo "== image-garden.pkgproxy daemon build version =="
+                image-garden.pkgproxyctl version || true
                 echo "== image-garden.pkgproxy logs =="
                 sudo snap logs image-garden.pkgproxy -n 500 || true
                 echo "== image-garden.pkgproxyctl stats =="

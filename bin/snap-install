@@ -101,6 +101,20 @@ until [ "$attempts" -le 0 ]; do
 			snap version
 			echo "snap changes:"
 			snap changes
+			# Record which upstream snapd was pointed at. When image-garden
+			# proxies the store through pkgproxy, the 500 above comes from
+			# pkgproxy (see /etc/hosts and the systemd drop-in it injects),
+			# not from snapd or the store, so say where the request went.
+			echo "snapd store configuration:"
+			if [ -f /etc/systemd/system/snapd.service.d/pkgproxy.conf ]; then
+				cat /etc/systemd/system/snapd.service.d/pkgproxy.conf
+			else
+				echo "(no /etc/systemd/system/snapd.service.d/pkgproxy.conf)"
+			fi
+			echo "pkgproxy /etc/hosts entry:"
+			grep pkgproxy /etc/hosts || echo "(no pkgproxy in /etc/hosts)"
+			echo "snapd store reachability:"
+			snap debug connectivity 2>&1 || true
 		} | tee -a "$task_dir"/"$snap".find-failure.debug
 		rm -f "$snap".response "$snap".header "$snap".curl-stderr
 		exit 69 # EX_UNAVAILABLE

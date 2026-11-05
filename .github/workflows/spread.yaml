@@ -123,6 +123,22 @@ jobs:
               if: failure()
               run: |
                 grep -n '' .image-garden/*.serial.log || true
+            # pkgproxy, which proxies the snap store for the guests, runs as
+            # the image-garden.pkgproxy daemon on the host. Its journal is the
+            # only place that says why a store request failed with HTTP 500
+            # (https://github.com/canonical/snapd-smoke-tests/issues/107).
+            - name: Show image-garden pkgproxy logs
+              if: failure()
+              run: |
+                echo "== image-garden revision/version =="
+                snap list image-garden || true
+                snap info image-garden || true
+                echo "== image-garden.pkgproxy daemon build version =="
+                image-garden.pkgproxyctl version || true
+                echo "== image-garden.pkgproxy logs =="
+                sudo snap logs image-garden.pkgproxy -n 500 || true
+                echo "== image-garden.pkgproxyctl stats =="
+                image-garden.pkgproxyctl stats || true
 
     test:
         runs-on: self-hosted-linux-amd64-noble-large
@@ -191,3 +207,19 @@ jobs:
               if: failure()
               run: |
                 grep -n '' .image-garden/*.serial.log || true
+            # pkgproxy, which proxies the snap store for the guests, runs as
+            # the image-garden.pkgproxy daemon on the host. Its journal is the
+            # only place that says why a store request failed with HTTP 500
+            # (https://github.com/canonical/snapd-smoke-tests/issues/107).
+            - name: Show image-garden pkgproxy logs
+              if: failure()
+              run: |
+                echo "== image-garden revision/version =="
+                snap list image-garden || true
+                snap info image-garden || true
+                echo "== image-garden.pkgproxy daemon build version =="
+                image-garden.pkgproxyctl version || true
+                echo "== image-garden.pkgproxy logs =="
+                sudo snap logs image-garden.pkgproxy -n 500 || true
+                echo "== image-garden.pkgproxyctl stats =="
+                image-garden.pkgproxyctl stats || true

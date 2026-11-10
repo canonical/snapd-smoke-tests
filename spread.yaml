@@ -84,12 +84,12 @@ backends:
                 password: root
                 username: root
                 workers: 2
-            - opensuse-cloud-tumbleweed-apparmor:
+            - opensuse-cloud-tumbleweed-at-apparmor:
                 manual: true
                 password: root
                 username: root
                 workers: 2
-            - opensuse-cloud-tumbleweed-selinux:
+            - opensuse-cloud-tumbleweed-at-selinux:
                 manual: true
                 password: root
                 username: root

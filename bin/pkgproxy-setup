@@ -1,0 +1,78 @@
+#!/bin/sh
+# SPDX-License-Identifier: Apache-2.0
+# SPDX-FileCopyrightText: Canonical Ltd.
+#
+# pkgproxy-setup - point tools in the system at pkgproxy
+#
+# image-garden sets every system up to download apt packages and snaps
+# through pkgproxy, a caching proxy on the host, which the system knows as
+# "pkgproxy". Other tools, such as Docker and LXD, need setting up once they
+# are installed. pkgproxy serves a setup script for each of them.
+#
+# Usage: pkgproxy-setup TOOL...
+#
+# Runs the setup script of each TOOL. The scripts differ in who must run them:
+#
+#   apt, docker, snap         change the configuration of the system, so they
+#                             must run as root;
+#   go, lxd, lxd-remote,      change the configuration of the user who runs
+#   snapcraft                 the tool, so they run as that user, and not
+#                             through sudo, which would change root's instead.
+#
+# pkgproxy-setup runs each script as the user that runs pkgproxy-setup, and
+# refuses a script that would not work as that user, rather than adding or
+# dropping sudo by itself. Spread runs tasks as root, without sudo, which
+# suits both kinds.
+#
+# Exits with 1 and changes nothing when there is no pkgproxy, as when
+# image-garden runs with "snap set image-garden pkgproxy=none", so that tests
+# can fall back to downloading directly:
+#
+#   if pkgproxy-setup lxd-remote; then
+#       echo pkgproxy-ubuntu >lxd-image-remote
+#   else
+#       echo ubuntu >lxd-image-remote
+#   fi
+set -eu
+
+if [ $# -eq 0 ]; then
+	echo "Usage: pkgproxy-setup TOOL..." >&2
+	exit 64 # EX_USAGE
+fi
+
+# Check all the tools before setting any of them up.
+for tool in "$@"; do
+	case "$tool" in
+	apt | docker | snap)
+		if [ "$(id -u)" -ne 0 ]; then
+			echo "pkgproxy-setup: setting up $tool changes the system: run pkgproxy-setup as root" >&2
+			exit 77 # EX_NOPERM
+		fi
+		;;
+	go | lxd | lxd-remote | snapcraft)
+		if [ -n "${SUDO_USER:-}" ]; then
+			echo "pkgproxy-setup: setting up $tool changes the configuration of the user who runs it: run pkgproxy-setup as $SUDO_USER, not through sudo" >&2
+			exit 77 # EX_NOPERM
+		fi
+		;;
+	*)
+		echo "pkgproxy-setup: unknown tool: $tool (want apt, docker, go, lxd, lxd-remote, snap or snapcraft)" >&2
+		exit 64 # EX_USAGE
+		;;
+	esac
+done
+
+if ! getent hosts pkgproxy >/dev/null; then
+	echo "pkgproxy-setup: there is no pkgproxy, not setting up: $*" >&2
+	exit 1
+fi
+
+script="$(mktemp)"
+trap 'rm -f "$script"' EXIT
+for tool in "$@"; do
+	echo "pkgproxy-setup: setting up $tool"
+	# Download the script first: with curl piped to sh, a failed download
+	# would run an empty script and look like success.
+	curl -fsSL -o "$script" http://pkgproxy:3142/setup/"$tool"
+	sh "$script"
+done

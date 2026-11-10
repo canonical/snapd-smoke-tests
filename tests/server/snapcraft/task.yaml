@@ -1,14 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 environment:
-    # TODO: restore once we have some form of caching of LXD buildd images used
-    # by snapcraft
-    # LXD_TRACK/lxd_5: "5.0"
-    # LXD_TRACK/lxd_5_21: "5.21"
-    # LXD_TRACK/lxd_6: 6
-    # LXD_TRACK/lxd_latest: latest
-    # the one below is intentionally empty: use the default LXD track until
-    # buildd image caching is available
+    LXD_TRACK/lxd_5: "5.0"
+    LXD_TRACK/lxd_5_21: "5.21"
+    LXD_TRACK/lxd_6: 6
+    LXD_TRACK/lxd_latest: latest
+    # the default track may be different than all of the above
     LXD_TRACK/default:
 kill-timeout: 5m
 warn-timeout: 3m
@@ -32,9 +29,9 @@ debug: |
     cat ~/.local/state/snapcraft/log/snapcraft-*.log || true
 prepare: |
     if [ -n "$LXD_TRACK" ]; then
-        snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
+        snap install --channel=${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}" lxd
     else
-        snap-install lxd
+        snap install lxd
     fi
     # LXD is not immediately ready to accept API requests.
     snap run lxd waitready
@@ -51,8 +48,16 @@ prepare: |
             ip6tables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT || true
         fi
     fi
+    # Download the build images of snapcraft through pkgproxy, which caches
+    # them, when there is one: its image remotes include the one snapcraft
+    # uses, craft-com.ubuntu.cloud-buildd. Its "snapcraft" setup would point
+    # the build containers at the bridge of this system, where pkgproxy does
+    # not run, as it runs on the host of this virtual machine.
+    # Spread runs this as root, without sudo, as the lxd-remote setup wants.
+    # Exit status 1 means there is no pkgproxy; anything else is an error.
+    pkgproxy-setup lxd-remote || [ $? -eq 1 ]
     # Install snapcraft for building a snap.
-    snap-install --classic snapcraft latest/"${X_SPREAD_SNAPCRAFT_RISK_LEVEL}"
+    snap install --classic --channel=latest/"${X_SPREAD_SNAPCRAFT_RISK_LEVEL}" snapcraft
 restore: |
     snap remove --purge test-snapd-smoke || true
     snap remove --purge snapcraft

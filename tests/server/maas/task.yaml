@@ -25,8 +25,8 @@ execute: |
         fi
     done
 prepare: |
-    snap-install maas-test-db ${MAAS_TRACK}/"${X_SPREAD_MAAS_RISK_LEVEL}"
-    snap-install maas ${MAAS_TRACK}/"${X_SPREAD_MAAS_RISK_LEVEL}"
+    snap install --channel=${MAAS_TRACK}/"${X_SPREAD_MAAS_RISK_LEVEL}" maas-test-db
+    snap install --channel=${MAAS_TRACK}/"${X_SPREAD_MAAS_RISK_LEVEL}" maas
 restore: |
     snap remove --purge maas
     snap remove --purge maas-test-db

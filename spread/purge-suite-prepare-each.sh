@@ -24,4 +24,4 @@ if [ -f /usr/lib/systemd/system/snapd.apparmor.service ]; then
 fi
 snap wait system seed.loaded
 
-exec "$SPREAD_PATH"/spread/install-snapd-and-bases.sh
+exec "$SPREAD_PATH"/spread/install-snapd.sh

@@ -13,18 +13,32 @@ skip:
     reason: decreasing test load on selected systems
 execute: |
     snap run lxd --help | MATCH 'The LXD container manager'
-    snap run lxd.lxc launch ubuntu:24.04 u1
+    snap run lxd.lxc launch "$(cat lxd-image-remote)":24.04 u1
     snap run lxd.lxc exec u1 -- cat /etc/os-release | MATCH 'VERSION_ID="24.04"'
 prepare: |
     if [ -n "$LXD_TRACK" ]; then
-        snap-install lxd ${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}"
+        snap install --channel=${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}" lxd
     else
-        snap-install lxd
+        snap install lxd
     fi
     # LXD is not immediately ready to accept API requests.
     snap run lxd waitready
     # Initialize LXD storage and networking with default settings.
     snap run lxd init --auto
+    # Download container images through pkgproxy, which caches them, when
+    # there is one. Only its image remotes are set up: its "lxd" setup would
+    # point the containers at the bridge of this system, where pkgproxy does
+    # not run, as it runs on the host of this virtual machine.
+    # Spread runs this as root, without sudo, as the lxd-remote setup wants:
+    # it changes the lxc configuration of the user who runs it. Exit status 1
+    # means there is no pkgproxy; anything else is an error.
+    if pkgproxy-setup lxd-remote; then
+        snap run lxd.lxc remote list | MATCH pkgproxy-ubuntu
+        echo pkgproxy-ubuntu >lxd-image-remote
+    else
+        [ $? -eq 1 ]
+        echo ubuntu >lxd-image-remote
+    fi
     # Allow LXD to connect to the network on systems where Docker is also installed.
     if [ -n "$(command -v docker)" ]; then
         if command -v iptables; then
@@ -40,5 +54,6 @@ restore: |
     snap run lxd.lxc stop u1 || true
     snap run lxd.lxc delete u1 || true
     rm -rfv $HOME/snap/lxd
+    rm -f lxd-image-remote
     snap remove --purge lxd
 summary: Install and see LXD help output.

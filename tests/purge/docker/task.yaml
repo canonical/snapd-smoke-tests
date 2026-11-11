@@ -1,6 +1,11 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 summary: See if snapd can be purged while Docker is used.
+systems:
+    # Docker does not start again after a restart on CentOS 10, which the
+    # test does to use pkgproxy's registry mirror:
+    # https://github.com/canonical/docker-snap/issues/420
+    - -centos-cloud-10
 details: |
     The Docker snap is one of the most complex snaps known to exist, largely
     due to the fact that it is privileged and can break out of the sandbox to

@@ -172,20 +172,20 @@ $(BASE_CLOUD_INIT_USER_DATA_TEMPLATE)
 $(snapd_suspend_workaround)
 # https://documentation.ubuntu.com/lxd/latest/howto/network_bridge_firewalld/#prevent-connectivity-issues-with-lxd-and-docker
 - echo net.ipv4.conf.all.forwarding=1 >/etc/sysctl.d/99-forwarding.conf
-# Remove the LXD snap that is sometimes pre-installed.
-# We want to make sure that we can remove all the base
-# snaps at the end of testing.
+# Remove the snaps that the image is seeded with, such as lxd and core20, or
+# core22 and snapd, so that every test starts without any snaps, and that all
+# the base snaps can be removed at the end of testing. Remove applications,
+# then bases, then snapd, as each needs the ones that come after it.
 - |
     snap wait system seed.loaded
-    if snap list lxd | grep -q lxd; then
-        snap remove --purge lxd
-    fi
-    if snap list core20 | grep -q core20; then
-        snap remove --purge core20
-    fi
-    if snap list snapd | grep -q snapd; then
-        snap remove --purge snapd
-    fi
+    for kind in app base snapd; do
+        for snap in $$(snap list 2>/dev/null | awk -v want="$$kind" 'NR > 1 {
+            kind = ($$NF ~ /(^|,)(base|core)(,|$$)/) ? "base" : ($$NF ~ /(^|,)snapd(,|$$)/) ? "snapd" : "app"
+            if (kind == want) print $$1
+        }'); do
+            snap remove --purge "$$snap"
+        done
+    done
 package_update: true
 package_upgrade: true
 packages:

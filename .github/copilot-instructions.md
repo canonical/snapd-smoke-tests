@@ -1,3 +1,8 @@
+<!--
+SPDX-License-Identifier: Apache-2.0
+SPDX-FileCopyrightText: Canonical Ltd.
+-->
+
 # AI Coding Assistant Instructions for snapd-smoke-tests
 
 ## Project Overview

@@ -24,3 +24,14 @@ else
 	echo "How do I uninstall snapd on this system? $(cat /etc/os-release)"
 	exit 1
 fi
+
+# Purging snapd leaves the data that snaps kept in home directories, such as
+# /root/snap/firefox/9181. Show what is left, which is part of what purging
+# does, then remove it: a later task may install another revision of the same
+# snap, as a progressive release may give the new device that snapd registers
+# after the purge another revision, and removing that snap then fails, as
+# /root/snap/firefox still holds the data of the old one.
+if [ -d /root/snap ]; then
+	find /root/snap -maxdepth 2 -ls
+	rm -rf /root/snap
+fi

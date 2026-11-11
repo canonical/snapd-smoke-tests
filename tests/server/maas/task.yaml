@@ -12,21 +12,23 @@ execute: |
     snap run maas init region+rack --database-uri maas-test-db:///  --maas-url http://localhost:5240/MAAS
     snap run maas createadmin --username admin --password admin --email admin@example.com
     # See if it is alive.
+    # Spread runs this with set -e: a probe that cannot connect yet, while
+    # MAAS starts, must not end the script, so its failure is a status too.
     printf "Waiting for MAAS to be up and running.."
     sleep 15
-    while true; do
-        status="$(timeout 5s curl -s -o /dev/null -w "%{http_code}" http://localhost:5240/MAAS/api/2.0/describe/)"
-        if [ "$status" -eq 200 ]; then
+    for _ in $(seq 60); do
+        status="$(timeout 5s curl -s -o /dev/null -w "%{http_code}" http://localhost:5240/MAAS/api/2.0/describe/ || true)"
+        if [ "$status" = 200 ]; then
             echo "Server is up! (HTTP 200)"
             break
-        else
-            echo "Waiting... (HTTP $status)"
-            sleep 2
         fi
+        echo "Waiting... (HTTP $status)"
+        sleep 2
     done
+    [ "$status" = 200 ]
 prepare: |
-    snap-install maas-test-db ${MAAS_TRACK}/"${X_SPREAD_MAAS_RISK_LEVEL}"
-    snap-install maas ${MAAS_TRACK}/"${X_SPREAD_MAAS_RISK_LEVEL}"
+    snap install --channel=${MAAS_TRACK}/"${X_SPREAD_MAAS_RISK_LEVEL}" maas-test-db
+    snap install --channel=${MAAS_TRACK}/"${X_SPREAD_MAAS_RISK_LEVEL}" maas
 restore: |
     snap remove --purge maas
     snap remove --purge maas-test-db

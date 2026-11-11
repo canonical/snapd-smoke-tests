@@ -19,17 +19,12 @@ backends:
                 password: root
                 username: root
                 workers: 2
-            - ubuntu-cloud-25.04:
-                manual: true
-                password: root
-                username: root
-                workers: 2
             - ubuntu-cloud-25.10:
                 manual: true
                 password: root
                 username: root
                 workers: 2
-            - debian-cloud-11:
+            - ubuntu-cloud-26.10:
                 manual: true
                 password: root
                 username: root
@@ -84,12 +79,12 @@ backends:
                 password: root
                 username: root
                 workers: 2
-            - opensuse-cloud-tumbleweed-apparmor:
+            - opensuse-cloud-tumbleweed-at-apparmor:
                 manual: true
                 password: root
                 username: root
                 workers: 2
-            - opensuse-cloud-tumbleweed-selinux:
+            - opensuse-cloud-tumbleweed-at-selinux:
                 manual: true
                 password: root
                 username: root
@@ -116,8 +111,6 @@ debug: |
     snap changes || true
 environment:
     PATH: /root/snapd-smoke-tests/bin:$PATH
-    X_SPREAD_CACHE_DIR: /mnt/cache
-    X_SPREAD_SNAP_CACHE_DIR: $X_SPREAD_CACHE_DIR/snaps
     X_SPREAD_SNAPD_RISK_LEVEL: '$(HOST: echo "${X_SPREAD_SNAPD_RISK_LEVEL:-beta}")'
     X_SPREAD_LXD_RISK_LEVEL: '$(HOST: echo "${X_SPREAD_LXD_RISK_LEVEL:-candidate}")'
     X_SPREAD_MAAS_RISK_LEVEL: '$(HOST: echo "${X_SPREAD_MAAS_RISK_LEVEL:-candidate}")'

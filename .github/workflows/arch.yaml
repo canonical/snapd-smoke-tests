@@ -74,35 +74,14 @@ on:
                 default: false
 
 jobs:
-    prepare-docker-image:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
-            - name: Save Docker image
-              uses: ./.github/actions/docker-image-cache
-              with:
-                  image-name: nginx
-                  mode: save
     spread:
         runs-on: self-hosted-linux-amd64-noble-large
-        needs: prepare-docker-image
         steps:
             - name: Checkout code
               uses: actions/checkout@v7
               # This is essential for git restore-mtime to work correctly.
               with:
                 fetch-depth: 0
-            - name: Restore Docker image
-              uses: ./.github/actions/docker-image-cache
-              with:
-                  image-name: nginx
-                  mode: restore
-            - name: Cache downloaded snaps
-              uses: actions/cache@v6
-              with:
-                path: .image-garden/cache-*/snaps
-                key: snaps
             - name: Set environment variables for spread
               run: |
                 # Export variables that spread picks up from the host.
@@ -115,11 +94,18 @@ jobs:
                 echo X_SPREAD_ARCH_SNAPD_REPO_SUBDIR="${{ inputs.arch-repo-subdir || '' }}" >> $GITHUB_ENV
                 echo X_SPREAD_CI_MODE_CLEAN_INSTALL="${{ inputs.clean-install || '' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@99544d66e30e4a11b3c64c231f7cfffc9c09fed5
+              uses: zyga/image-garden-action@2891c7a26560054eaafa5084f7d43203652840f6
               with:
+                # pkgproxy from latest/edge takes the egress proxy as its
+                # own http-proxy and https-proxy options, which the action
+                # sets from snapd's proxy settings and aproxy.
+                pkgproxy-channel: latest/edge
                 garden-system: archlinux-cloud
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: archlinux-cloud
+                # Use the caches of the smoke workflow on main, never save.
+                cache-scope: shared
+                save-cache: never
                 spread-variant: plus

@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 prepare: |
-    snap-install hello
+    snap install hello
 restore: |
     snap remove --purge hello
 summary: Verify migration of snap mount directory on openSUSE
 systems:
-    - opensuse-cloud-tumbleweed-*
+    - opensuse-cloud-tumbleweed-at-*
 skip:
     - reason: "Use of /var/lib/snapd/snap through X_SPREAD_OPENSUSE_MOUNT_DIR"
       if: test "$X_SPREAD_OPENSUSE_MOUNT_DIR" = "/var/lib/snapd/snap"

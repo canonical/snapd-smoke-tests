@@ -74,35 +74,14 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-    prepare-docker-image:
-        runs-on: ubuntu-latest
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v7
-            - name: Save Docker image
-              uses: ./.github/actions/docker-image-cache
-              with:
-                  image-name: nginx
-                  mode: save
     canary:
         runs-on: self-hosted-linux-amd64-noble-large
-        needs: prepare-docker-image
         steps:
             - name: Checkout code
               uses: actions/checkout@v7
               # This is essential for git restore-mtime to work correctly.
               with:
                 fetch-depth: 0
-            - name: Restore Docker image
-              uses: ./.github/actions/docker-image-cache
-              with:
-                  image-name: nginx
-                  mode: restore
-            - name: Cache downloaded snaps
-              uses: actions/cache@v6
-              with:
-                path: .image-garden/cache-*/snaps
-                key: snaps
             - name: Set environment variables for spread
               run: |
                 # Export variables that spread picks up from the host.
@@ -112,13 +91,22 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@99544d66e30e4a11b3c64c231f7cfffc9c09fed5
+              uses: zyga/image-garden-action@2891c7a26560054eaafa5084f7d43203652840f6
               with:
+                # pkgproxy from latest/edge takes the egress proxy as its
+                # own http-proxy and https-proxy options, which the action
+                # sets from snapd's proxy settings and aproxy.
+                pkgproxy-channel: latest/edge
                 snapd-channel: latest/edge
                 garden-system: ubuntu-cloud-24.04
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ubuntu-cloud-24.04
+                # The canary saves the packages that the whole matrix shares,
+                # on pushes to main only: runs started by hand may test other
+                # risk levels, and only read the caches.
+                cache-scope: shared
+                save-cache: ${{ github.event_name == 'push' && 'default-branch' || 'never' }}
             - name: Show image-garden serial logs
               if: failure()
               run: |
@@ -126,7 +114,7 @@ jobs:
 
     test:
         runs-on: self-hosted-linux-amd64-noble-large
-        needs: [canary, prepare-docker-image]
+        needs: canary
         strategy:
             fail-fast: false
             matrix:
@@ -137,38 +125,27 @@ jobs:
                     - archlinux-cloud
                     - centos-cloud-10
                     - centos-cloud-9
-                    - debian-cloud-11
                     - debian-cloud-12
                     - debian-cloud-13
                     - debian-cloud-sid
                     - fedora-cloud-42
                     - fedora-cloud-43
-                    - opensuse-cloud-tumbleweed-apparmor
-                    - opensuse-cloud-tumbleweed-selinux
+                    - opensuse-cloud-tumbleweed-at-apparmor
+                    - opensuse-cloud-tumbleweed-at-selinux
                     - oracle-cloud-8
                     - rocky-cloud-8
                     - ubuntu-cloud-20.04
                     - ubuntu-cloud-22.04
                     # This is duplicating the canary job.
                     # - ubuntu-cloud-24.04
-                    - ubuntu-cloud-25.04
                     - ubuntu-cloud-25.10
+                    - ubuntu-cloud-26.10
         steps:
             - name: Checkout code
               uses: actions/checkout@v7
               # This is essential for git restore-mtime to work correctly.
               with:
                 fetch-depth: 0
-            - name: Restore Docker image
-              uses: ./.github/actions/docker-image-cache
-              with:
-                  image-name: nginx
-                  mode: restore
-            - name: Restore cache of downloaded snaps
-              uses: actions/cache/restore@v6
-              with:
-                path: .image-garden/cache-*/snaps
-                key: snaps
             - name: Set environment variables for spread
               run: |
                 # Export variables that spread picks up from the host.
@@ -178,14 +155,23 @@ jobs:
                 echo X_SPREAD_SNAPCRAFT_RISK_LEVEL="${{ inputs.snapcraft-risk-level || 'stable' }}" >> $GITHUB_ENV
                 echo X_SPREAD_DOCKER_RISK_LEVEL="${{ inputs.docker-risk-level || 'stable' }}" >> $GITHUB_ENV
             - name: Run integration tests
-              uses: zyga/image-garden-action@99544d66e30e4a11b3c64c231f7cfffc9c09fed5
+              uses: zyga/image-garden-action@2891c7a26560054eaafa5084f7d43203652840f6
               with:
+                # pkgproxy from latest/edge takes the egress proxy as its
+                # own http-proxy and https-proxy options, which the action
+                # sets from snapd's proxy settings and aproxy.
+                pkgproxy-channel: latest/edge
                 snapd-channel: latest/edge
                 image-garden-channel: ${{ inputs.image-garden-channel || 'latest/edge' }}
                 garden-system: ${{ matrix.garden-system }}
-                cache-prepared-images: ${{ matrix.garden-system == 'archlinux-cloud' }}
                 spread-artifacts: artifacts
                 spread-artifacts-suffix: ${{ matrix.garden-system }}
+                # Share the packages of the canary, which saves them, and
+                # keep the pristine image of this system, saved on pushes to
+                # main only.
+                cache-scope: shared
+                save-package-cache: "false"
+                save-cache: ${{ github.event_name == 'push' && 'default-branch' || 'never' }}
                 spread-variant: plus
             - name: Show image-garden serial logs
               if: failure()

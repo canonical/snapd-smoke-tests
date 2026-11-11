@@ -3,7 +3,7 @@
 execute: |
     snap run certbot --help | MATCH 'Certbot can obtain and install HTTPS/TLS/SSL certificates.'
 prepare: |
-    snap-install --classic certbot
+    snap install --classic certbot
 restore: |
     snap remove --purge certbot
 summary: Install and see Certbot help output.

@@ -1,14 +1,24 @@
 # SPDX-License-Identifier: Apache-2.0
 # SPDX-FileCopyrightText: Canonical Ltd.
 summary: See if snapd can be purged while Docker is used.
+systems:
+    # Docker does not start again after a restart on CentOS 10, which the
+    # test does to use pkgproxy's registry mirror:
+    # https://github.com/canonical/docker-snap/issues/420
+    - -centos-cloud-10
 details: |
     The Docker snap is one of the most complex snaps known to exist, largely
     due to the fact that it is privileged and can break out of the sandbox to
     perform many of the more advanced functions. Removing Docker correctly is
     tricky, especially when snapd itself is being removed and all we have is
     the distribution maintainer script.
+debug: |
+    # What the Docker daemon was told and why it is not answering.
+    snap services docker || true
+    cat /var/snap/docker/current/config/daemon.json || true
+    snap logs -n 50 docker.dockerd || true
 prepare: |
-    snap-install docker latest/"$X_SPREAD_DOCKER_RISK_LEVEL"
+    snap install --channel=latest/"$X_SPREAD_DOCKER_RISK_LEVEL" docker
     # Give docker a moment to expose the API surface.
     for _ in $(seq 5); do
         if [ -S /var/run/docker.sock ]; then
@@ -17,15 +27,28 @@ prepare: |
         sleep 1
     done
 
-    # Load the cached Docker image if available, otherwise pull from Docker Hub
-    CACHED_IMAGE="$SPREAD_PATH/docker-cache/docker-image-nginx.tar"
-    if [ -f "$CACHED_IMAGE" ]; then
-        echo "Loading cached nginx image from $CACHED_IMAGE"
-        snap run docker load -i "$CACHED_IMAGE"
+    # Pull images from Docker Hub through pkgproxy, which caches them, so that
+    # repeated runs are not rate-limited by Docker Hub. The docker setup
+    # changes the configuration of the Docker daemon, so it runs as root,
+    # which spread runs this as. Exit status 1 means there is no pkgproxy;
+    # anything else is an error.
+    if pkgproxy-setup docker; then
+        # Setting up restarts Docker: wait for the daemon to answer again,
+        # which takes longer than 10 seconds on some systems.
+        for _ in $(seq 60); do
+            if snap run docker info >/dev/null 2>&1; then
+                break
+            fi
+            sleep 1
+        done
+        if ! snap run docker info >/dev/null; then
+            echo "the Docker daemon did not come back after pkgproxy-setup restarted it" >&2
+            exit 1
+        fi
     else
-        echo "No cached image found, pulling nginx from Docker Hub"
-        snap run docker pull nginx
+        [ $? -eq 1 ]
     fi
+    snap run docker pull nginx
 
     # Launch a container that runs in the background.
     snap run docker run -v ./public_html:/usr/share/nginx/html:ro -d -p 8080:80 nginx

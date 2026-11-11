@@ -3,7 +3,7 @@
 execute: |
     snap run hello | MATCH 'Hello, world!'
 prepare: |
-    snap-install hello
+    snap install hello
 restore: |
     snap remove --purge hello
 summary: Install and see "hello" help output.

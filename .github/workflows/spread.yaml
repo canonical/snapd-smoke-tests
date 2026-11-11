@@ -125,7 +125,6 @@ jobs:
                     - archlinux-cloud
                     - centos-cloud-10
                     - centos-cloud-9
-                    - debian-cloud-11
                     - debian-cloud-12
                     - debian-cloud-13
                     - debian-cloud-sid
@@ -139,8 +138,8 @@ jobs:
                     - ubuntu-cloud-22.04
                     # This is duplicating the canary job.
                     # - ubuntu-cloud-24.04
-                    - ubuntu-cloud-25.04
                     - ubuntu-cloud-25.10
+                    - ubuntu-cloud-26.10
         steps:
             - name: Checkout code
               uses: actions/checkout@v7

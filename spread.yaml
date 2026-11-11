@@ -19,17 +19,12 @@ backends:
                 password: root
                 username: root
                 workers: 2
-            - ubuntu-cloud-25.04:
-                manual: true
-                password: root
-                username: root
-                workers: 2
             - ubuntu-cloud-25.10:
                 manual: true
                 password: root
                 username: root
                 workers: 2
-            - debian-cloud-11:
+            - ubuntu-cloud-26.10:
                 manual: true
                 password: root
                 username: root

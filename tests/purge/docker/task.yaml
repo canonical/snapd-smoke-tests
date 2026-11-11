@@ -7,6 +7,11 @@ details: |
     perform many of the more advanced functions. Removing Docker correctly is
     tricky, especially when snapd itself is being removed and all we have is
     the distribution maintainer script.
+debug: |
+    # What the Docker daemon was told and why it is not answering.
+    snap services docker || true
+    cat /var/snap/docker/current/config/daemon.json || true
+    snap logs -n 50 docker.dockerd || true
 prepare: |
     snap install --channel=latest/"$X_SPREAD_DOCKER_RISK_LEVEL" docker
     # Give docker a moment to expose the API surface.
@@ -23,13 +28,18 @@ prepare: |
     # which spread runs this as. Exit status 1 means there is no pkgproxy;
     # anything else is an error.
     if pkgproxy-setup docker; then
-        # Setting up restarts Docker: wait for its API surface again.
-        for _ in $(seq 10); do
+        # Setting up restarts Docker: wait for the daemon to answer again,
+        # which takes longer than 10 seconds on some systems.
+        for _ in $(seq 60); do
             if snap run docker info >/dev/null 2>&1; then
                 break
             fi
             sleep 1
         done
+        if ! snap run docker info >/dev/null; then
+            echo "the Docker daemon did not come back after pkgproxy-setup restarted it" >&2
+            exit 1
+        fi
     else
         [ $? -eq 1 ]
     fi

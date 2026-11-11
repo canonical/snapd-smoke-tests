@@ -16,6 +16,9 @@ skip:
   - if: |
       [ -n "$LXD_TRACK" ] && [[ "$SPREAD_SYSTEM" != *ubuntu* ]]
     reason: decreasing test load on selected systems
+  - if: |
+      [ "$SPREAD_SYSTEM" = ubuntu-cloud-20.04 ] && [ "$LXD_TRACK" != 5.0 ] && [ "$LXD_TRACK" != 5.21 ]
+    reason: LXD 6 cannot unpack images on the 5.4 kernel of Ubuntu 20.04 ("Function not implemented")
 prepare: |
     snap install --channel=${LXD_TRACK}/"${X_SPREAD_LXD_RISK_LEVEL}" lxd
     # LXD is not immediately ready to accept API requests.
